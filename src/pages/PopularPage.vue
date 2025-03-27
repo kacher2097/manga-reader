@@ -104,13 +104,24 @@ import { ref } from 'vue'
 import MangaCard from '../components/ui/MangaCard.vue'
 
 // Mock data
-const rankingTypes = [
+const rankingTypes: Array<{ value: 'views' | 'rating' | 'favorites', label: string }> = [
   { value: 'views', label: 'Lượt xem' },
   { value: 'rating', label: 'Đánh giá' },
   { value: 'favorites', label: 'Yêu thích' },
 ]
 
-const manga = [
+interface Manga {
+  id: string;
+  title: string;
+  coverImage: string;
+  status: 'ongoing' | 'completed';
+  latestChapter: number;
+  rating: number;
+  views: number;
+  favorites: number;
+}
+
+const manga: Manga[] = [
   {
     id: '1',
     title: 'One Piece',
@@ -150,7 +161,7 @@ const formatNumber = (num: number): string => {
   return num.toString()
 }
 
-const getTopManga = (type: string) => {
+const getTopManga = (type: keyof Pick<Manga, 'rating' | 'views' | 'favorites'>) => {
   return [...manga]
     .sort((a, b) => b[type] - a[type])
     .slice(0, 5)

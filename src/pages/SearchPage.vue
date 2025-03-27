@@ -205,6 +205,16 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import MangaCard from '../components/ui/MangaCard.vue'
 
+interface Manga {
+  id: string
+  title: string
+  coverImage: string
+  status: 'ongoing' | 'completed'
+  latestChapter: number
+  rating: number
+  views: number
+}
+
 const route = useRoute()
 const router = useRouter()
 
@@ -217,9 +227,10 @@ const categories = [
   { id: 5, name: 'Fantasy' },
   { id: 6, name: 'Horror' },
   { id: 7, name: 'Romance' },
-  { id: 8, name: 'Sci-fi' },
-  // Add more categories...
+  { id: 8, name: 'Sci-fi' }
 ]
+
+const searchResults = ref<Manga[]>([])
 
 // State
 const searchQuery = ref('')
@@ -228,7 +239,6 @@ const loading = ref(false)
 const currentPage = ref(1)
 const totalResults = ref(0)
 const totalPages = ref(1)
-const searchResults = ref([])
 
 const filters = ref({
   categories: [],
@@ -248,8 +258,13 @@ const search = async () => {
     path: '/search',
     query: {
       q: searchQuery.value,
-      page: currentPage.value,
-      ...filters.value,
+      page: currentPage.value.toString(),
+      categories: filters.value.categories,
+      ongoing: filters.value.ongoing.toString(),
+      completed: filters.value.completed.toString(),
+      type: filters.value.type,
+      sort: filters.value.sort,
+      order: filters.value.order,
     },
   })
 

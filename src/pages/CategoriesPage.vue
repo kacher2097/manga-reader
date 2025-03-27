@@ -118,7 +118,7 @@ const filteredManga = [
     id: '1',
     title: 'One Piece',
     coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing',
+    status: 'ongoing' as 'ongoing', // Explicitly specify the literal type
     latestChapter: 1089,
     rating: 4.9,
     views: 1500000,

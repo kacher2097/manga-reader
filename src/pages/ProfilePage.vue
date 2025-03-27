@@ -168,7 +168,7 @@ const readingHistory = [
     id: '1',
     title: 'One Piece',
     coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing',
+    status: 'ongoing' as const,
     latestChapter: 1089,
     lastReadChapter: 1088,
     rating: 4.9,

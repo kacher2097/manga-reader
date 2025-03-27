@@ -139,7 +139,18 @@ const categories = [
   { id: 8, name: 'Sci-fi' },
 ]
 
-const manga = [
+interface Manga {
+  id: string;
+  title: string;
+  coverImage: string;
+  status: 'ongoing' | 'completed';
+  latestChapter: number;
+  rating: number;
+  views: number;
+  year: number;
+}
+
+const manga: Manga[] = [
   {
     id: '1',
     title: 'One Piece',

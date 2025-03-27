@@ -134,6 +134,22 @@
 import { ref, computed } from 'vue'
 import MangaCard from '../components/ui/MangaCard.vue'
 
+// Định nghĩa kiểu MangaStatus
+type MangaStatus = 'ongoing' | 'completed';
+
+// Interface cho đối tượng manga
+interface Manga {
+  id: string;
+  title: string;
+  coverImage: string;
+  status: MangaStatus;
+  latestChapter: number;
+  rating: number;
+  views: number;
+  addedAt: string;
+  lastRead: string;
+}
+
 // Mock data
 const collections = [
   { id: 'all', name: 'Tất cả', count: 42 },
@@ -146,7 +162,7 @@ const favorites = [
     id: '1',
     title: 'One Piece',
     coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing',
+    status: 'ongoing' as MangaStatus,
     latestChapter: 1089,
     rating: 4.9,
     views: 1500000,

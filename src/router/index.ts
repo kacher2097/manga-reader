@@ -2,6 +2,18 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../pages/HomePage.vue'
 import ReaderPage from '../pages/ReaderPage.vue'
 
+type Manga = {
+  id: string;
+  title: string;
+  coverImage: string;
+  status: 'ongoing' | 'completed'; // Chỉ cho phép hai giá trị này
+  latestChapter: number;
+  rating: number;
+  views: number;
+  addedAt: string;
+  lastRead: string;
+};
+
 const router = createRouter({
   history: createWebHistory(),
   routes: [

@@ -3,7 +3,7 @@
     <!-- Hero Section -->
     <section class="h-hero mt-header relative">
       <swiper
-        :modules="[SwiperAutoplay, SwiperPagination, SwiperNavigation]"
+        :modules="[Autoplay, Pagination, Navigation]"
         :slides-per-view="1"
         :loop="true"
         :autoplay="{ delay: 5000 }"
@@ -132,10 +132,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay, Pagination, Navigation } from 'swiper'
-import 'swiper/css'
-import 'swiper/css/pagination'
-import 'swiper/css/navigation'
+import { Autoplay } from 'swiper/modules'
+import { Pagination } from 'swiper/modules'
+import { Navigation } from 'swiper/modules'
 import MangaCard from '../components/ui/MangaCard.vue'
 
 // Mock data
@@ -170,7 +169,7 @@ const latestManga = [
     id: '1',
     title: 'One Piece',
     coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing',
+    status: 'ongoing' as const,
     latestChapter: 1089,
     rating: 4.9,
     views: 1500000,
@@ -183,7 +182,7 @@ const popularManga = [
     id: '2',
     title: 'Naruto',
     coverImage: '/manga/naruto.jpg',
-    status: 'completed',
+    status: 'completed' as const,
     latestChapter: 700,
     rating: 4.8,
     views: 2000000,
