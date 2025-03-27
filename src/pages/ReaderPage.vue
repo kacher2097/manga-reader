@@ -1,367 +1,382 @@
 <template>
-  <div class="min-h-screen bg-black">
-    <!-- Reader Header -->
-    <header 
-      class="fixed top-0 left-0 right-0 h-12 bg-background/95 backdrop-blur-sm z-50 transition-transform duration-300"
-      :class="{ '-translate-y-full': hideUI }"
-      @mouseenter="showUI"
+  <div class="min-h-screen bg-gray-900">
+    <!-- Top Navigation -->
+    <nav 
+      class="fixed top-0 left-0 right-0 bg-gray-800 z-50 transition-transform duration-300"
+      :class="{ '-translate-y-full': hideControls }"
+      @mouseenter="hideControls = false"
     >
-      <div class="h-full px-4 flex items-center justify-between gap-4">
-        <!-- Back button -->
-        <router-link 
-          :to="'/manga/' + mangaId" 
-          class="btn bg-background-light hover:bg-background"
-        >
-          <i class="i-heroicons-arrow-left-20-solid" />
-          <span class="ml-2 hidden sm:inline">Quay lại</span>
-        </router-link>
-
-        <!-- Chapter Navigation -->
-        <div class="flex items-center gap-2">
-          <button 
-            class="btn bg-background-light hover:bg-background"
-            :disabled="!hasPrevChapter"
-            @click="navigateChapter(-1)"
-          >
-            <i class="i-heroicons-chevron-left-20-solid" />
-          </button>
-          
-          <select
-            v-model="currentChapter"
-            class="bg-background-light rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary min-w-[150px]"
-          >
-            <option 
-              v-for="chapter in chapters"
-              :key="chapter.id"
-              :value="chapter.id"
+      <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <router-link
+              :to="'/manga/' + mangaId"
+              class="text-white hover:text-red-500 transition-colors"
             >
-              Chapter {{ chapter.number }}
-            </option>
-          </select>
+              <i class="fas fa-arrow-left mr-2"></i>
+              Quay lại
+            </router-link>
+            <h1 class="text-lg font-semibold text-white">
+              {{ mangaTitle }} - Chapter {{ chapterNumber }}
+            </h1>
+          </div>
 
-          <button 
-            class="btn bg-background-light hover:bg-background"
-            :disabled="!hasNextChapter"
-            @click="navigateChapter(1)"
-          >
-            <i class="i-heroicons-chevron-right-20-solid" />
-          </button>
-        </div>
+          <div class="flex items-center space-x-4">
+            <!-- Chapter Navigation -->
+            <div class="flex items-center space-x-2">
+              <button
+                class="p-2 text-white hover:text-red-500 transition-colors disabled:opacity-50"
+                :disabled="!hasPreviousChapter"
+                @click="previousChapter"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              
+              <select
+                v-model="currentChapter"
+                class="bg-gray-700 text-white rounded px-3 py-1 focus:ring-2 focus:ring-red-500"
+                @change="changeChapter"
+              >
+                <option
+                  v-for="chapter in chapters"
+                  :key="chapter.number"
+                  :value="chapter.number"
+                >
+                  Chapter {{ chapter.number }}
+                </option>
+              </select>
 
-        <!-- Settings -->
-        <div class="flex items-center gap-4">
-          <!-- Reading Direction -->
-          <button
-            class="btn bg-background-light hover:bg-background hidden sm:flex"
-            @click="toggleReadingDirection"
-          >
-            <i :class="isVertical ? 'i-heroicons-arrows-up-down-20-solid' : 'i-heroicons-arrows-right-left-20-solid'" />
-            <span class="ml-2">{{ isVertical ? 'Dọc' : 'Ngang' }}</span>
-          </button>
+              <button
+                class="p-2 text-white hover:text-red-500 transition-colors disabled:opacity-50"
+                :disabled="!hasNextChapter"
+                @click="nextChapter"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
 
-          <!-- Page Layout -->
-          <button
-            class="btn bg-background-light hover:bg-background hidden sm:flex"
-            @click="togglePageLayout"
-          >
-            <i :class="singlePage ? 'i-heroicons-document-20-solid' : 'i-heroicons-document-duplicate-20-solid'" />
-            <span class="ml-2">{{ singlePage ? '1 trang' : '2 trang' }}</span>
-          </button>
+            <!-- Reading Settings -->
+            <div class="relative">
+              <button
+                class="p-2 text-white hover:text-red-500 transition-colors"
+                @click="showSettings = !showSettings"
+              >
+                <i class="fas fa-cog"></i>
+              </button>
 
-          <!-- Settings Menu (Mobile) -->
-          <button
-            class="btn bg-background-light hover:bg-background sm:hidden"
-            @click="showSettings = true"
-          >
-            <i class="i-heroicons-cog-6-tooth-20-solid" />
-          </button>
-        </div>
-      </div>
-    </header>
+              <!-- Settings Dropdown -->
+              <div
+                v-if="showSettings"
+                class="absolute top-full right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg p-4"
+                @click.stop
+              >
+                <h3 class="text-lg font-semibold text-white mb-4">Cài đặt đọc</h3>
+                
+                <div class="space-y-4">
+                  <!-- Reading Mode -->
+                  <div>
+                    <label class="block text-white mb-2">Chế độ đọc</label>
+                    <select
+                      v-model="readingMode"
+                      class="w-full bg-gray-700 text-white rounded px-3 py-1 focus:ring-2 focus:ring-red-500"
+                    >
+                      <option value="vertical">Cuộn dọc</option>
+                      <option value="horizontal">Cuộn ngang</option>
+                      <option value="single">Một trang</option>
+                    </select>
+                  </div>
 
-    <!-- Reader Content -->
-    <main 
-      class="min-h-screen pt-12 pb-16"
-      @click="toggleUI"
-    >
-      <div 
-        class="max-w-reader mx-auto px-4"
-        :class="{
-          'space-y-4': isVertical,
-          'flex flex-wrap justify-center gap-4': !isVertical
-        }"
-      >
-        <template v-if="loading">
-          <div class="flex items-center justify-center min-h-[calc(100vh-7rem)]">
-            <div class="animate-spin">
-              <i class="i-heroicons-arrow-path-20-solid text-4xl" />
+                  <!-- Page Width -->
+                  <div>
+                    <label class="block text-white mb-2">
+                      Chiều rộng trang ({{ pageWidth }}%)
+                    </label>
+                    <input
+                      type="range"
+                      v-model="pageWidth"
+                      min="50"
+                      max="100"
+                      class="w-full"
+                    />
+                  </div>
+
+                  <!-- Page Gap -->
+                  <div>
+                    <label class="block text-white mb-2">
+                      Khoảng cách trang ({{ pageGap }}px)
+                    </label>
+                    <input
+                      type="range"
+                      v-model="pageGap"
+                      min="0"
+                      max="50"
+                      class="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </template>
-        <template v-else>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Chapter Content -->
+    <div
+      class="pt-16 pb-16 transition-all duration-300"
+      :class="{
+        'container mx-auto px-4': true,
+        'space-y-4': readingMode === 'vertical',
+        'flex overflow-x-auto snap-x snap-mandatory': readingMode === 'horizontal',
+        'flex justify-center items-center min-h-screen': readingMode === 'single',
+      }"
+      @mousemove="handleMouseMove"
+      @click="handleClick"
+    >
+      <template v-if="readingMode === 'horizontal'">
+        <div
+          v-for="(page, index) in pages"
+          :key="index"
+          class="shrink-0 snap-center"
+          :style="{ 
+            width: pageWidth + '%',
+            'margin-right': index < pages.length - 1 ? pageGap + 'px' : '0'
+          }"
+        >
           <img
-            v-for="(page, index) in currentPages"
-            :key="index"
-            :src="page.url"
+            :src="page"
             :alt="'Page ' + (index + 1)"
-            class="mx-auto"
-            :class="{
-              'max-h-[calc(100vh-7rem)]': !isVertical,
-              'w-full': isVertical
-            }"
-            :style="{
-              maxWidth: singlePage || isVertical ? '100%' : '50%'
-            }"
-            @load="handleImageLoad"
-          >
-        </template>
-      </div>
-    </main>
+            class="w-full"
+            loading="lazy"
+          />
+        </div>
+      </template>
 
-    <!-- Reader Footer -->
-    <footer
-      class="fixed bottom-0 left-0 right-0 h-16 bg-background/95 backdrop-blur-sm z-50 transition-transform duration-300"
-      :class="{ 'translate-y-full': hideUI }"
-      @mouseenter="showUI"
+      <template v-else-if="readingMode === 'vertical'">
+        <img
+          v-for="(page, index) in pages"
+          :key="index"
+          :src="page"
+          :alt="'Page ' + (index + 1)"
+          :style="{ width: pageWidth + '%' }"
+          class="mx-auto"
+          loading="lazy"
+        />
+      </template>
+
+      <template v-else>
+        <img
+          :src="pages[currentPage - 1]"
+          :alt="'Page ' + currentPage"
+          :style="{ width: pageWidth + '%' }"
+          class="mx-auto"
+          @click="nextPage"
+          loading="lazy"
+        />
+      </template>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav 
+      class="fixed bottom-0 left-0 right-0 bg-gray-800 z-50 transition-transform duration-300"
+      :class="{ 'translate-y-full': hideControls }"
+      @mouseenter="hideControls = false"
     >
-      <div class="h-full px-4 flex items-center justify-between">
-        <!-- Page Navigation -->
-        <div class="flex items-center gap-4">
-          <span class="text-gray-400">
-            Trang {{ currentPageNumber }}/{{ totalPages }}
-          </span>
-          <input
-            type="range"
-            v-model="currentPageNumber"
-            :min="1"
-            :max="totalPages"
-            class="w-48 accent-primary"
+      <div class="container mx-auto px-4 py-3">
+        <div class="flex items-center justify-between">
+          <button
+            class="text-white hover:text-red-500 transition-colors disabled:opacity-50"
+            :disabled="!hasPreviousChapter"
+            @click="previousChapter"
           >
-        </div>
+            Chapter trước
+          </button>
 
-        <!-- Keyboard Shortcuts -->
-        <div class="hidden sm:flex items-center gap-4 text-gray-400">
-          <span>← Trang trước</span>
-          <span>→ Trang sau</span>
-          <span>Space Tự động cuộn</span>
-        </div>
-      </div>
-    </footer>
-
-    <!-- Settings Modal (Mobile) -->
-    <dialog
-      :open="showSettings"
-      class="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50"
-      @close="showSettings = false"
-    >
-      <div class="bg-background-light rounded-t-lg sm:rounded-lg w-full sm:max-w-md">
-        <div class="p-6 space-y-6">
-          <div class="flex items-center justify-between">
-            <h3 class="text-xl font-bold">Cài đặt</h3>
-            <button
-              class="text-gray-400 hover:text-white"
-              @click="showSettings = false"
-            >
-              <i class="i-heroicons-x-mark-20-solid" />
-            </button>
+          <div class="text-white">
+            <span v-if="readingMode === 'single'">
+              {{ currentPage }} / {{ totalPages }}
+            </span>
           </div>
 
-          <!-- Reading Direction -->
-          <div class="flex items-center justify-between">
-            <span>Hướng đọc</span>
-            <button
-              class="btn bg-background hover:bg-background-light"
-              @click="toggleReadingDirection"
-            >
-              <i :class="isVertical ? 'i-heroicons-arrows-up-down-20-solid' : 'i-heroicons-arrows-right-left-20-solid'" />
-              <span class="ml-2">{{ isVertical ? 'Dọc' : 'Ngang' }}</span>
-            </button>
-          </div>
-
-          <!-- Page Layout -->
-          <div class="flex items-center justify-between">
-            <span>Bố cục trang</span>
-            <button
-              class="btn bg-background hover:bg-background-light"
-              @click="togglePageLayout"
-            >
-              <i :class="singlePage ? 'i-heroicons-document-20-solid' : 'i-heroicons-document-duplicate-20-solid'" />
-              <span class="ml-2">{{ singlePage ? '1 trang' : '2 trang' }}</span>
-            </button>
-          </div>
+          <button
+            class="text-white hover:text-red-500 transition-colors disabled:opacity-50"
+            :disabled="!hasNextChapter"
+            @click="nextChapter"
+          >
+            Chapter sau
+          </button>
         </div>
       </div>
-    </dialog>
+    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
 
-// Props from route
-const mangaId = route.params.mangaId as string
-const chapterId = route.params.chapterId as string
+// Route params
+const mangaId = route.params.id as string
+const chapterNumber = parseInt(route.params.chapter as string)
+const mangaTitle = 'One Piece' // This should come from your store or API
+
+// Reading settings
+const readingMode = ref<'vertical' | 'horizontal' | 'single'>('vertical')
+const pageWidth = ref(80)
+const pageGap = ref(10)
+const currentPage = ref(1)
+const showSettings = ref(false)
+const hideControls = ref(false)
+let hideControlsTimeout: ReturnType<typeof setTimeout>
 
 // Mock data
-const chapters = [
-  { id: '1', number: 1 },
-  { id: '2', number: 2 },
-  { id: '3', number: 3 },
-  // Add more chapters...
-]
+const chapters = ref([
+  { number: 1089, title: 'The Strongest Man in the World' },
+  { number: 1088, title: 'The Final Battle' },
+  { number: 1087, title: 'The New Era' },
+])
 
-const pages = [
-  { url: '/manga/chapter-1/page-1.jpg' },
-  { url: '/manga/chapter-1/page-2.jpg' },
-  { url: '/manga/chapter-1/page-3.jpg' },
-  // Add more pages...
-]
-
-// State
-const loading = ref(true)
-const currentChapter = ref(chapterId)
-const currentPageNumber = ref(1)
-const isVertical = ref(true)
-const singlePage = ref(true)
-const hideUI = ref(false)
-const showSettings = ref(false)
-const uiTimeout = ref<number | null>(null)
+const pages = ref([
+  '/images/chapters/1089/001.jpg',
+  '/images/chapters/1089/002.jpg',
+  '/images/chapters/1089/003.jpg',
+  '/images/chapters/1089/004.jpg',
+  '/images/chapters/1089/005.jpg',
+])
 
 // Computed
-const totalPages = computed(() => pages.length)
-
-const hasPrevChapter = computed(() => {
-  const index = chapters.findIndex(c => c.id === currentChapter.value)
-  return index > 0
-})
-
+const totalPages = computed(() => pages.value.length)
+const currentChapter = ref(chapterNumber)
+const hasPreviousChapter = computed(() => currentChapter.value > 1)
 const hasNextChapter = computed(() => {
-  const index = chapters.findIndex(c => c.id === currentChapter.value)
-  return index < chapters.length - 1
-})
-
-const currentPages = computed(() => {
-  const index = currentPageNumber.value - 1
-  if (singlePage.value || isVertical.value) {
-    return [pages[index]]
-  }
-  return [pages[index], pages[index + 1]].filter(Boolean)
+  const lastChapter = chapters.value[chapters.value.length - 1].number
+  return currentChapter.value < lastChapter
 })
 
 // Methods
-const navigateChapter = (delta: number) => {
-  const index = chapters.findIndex(c => c.id === currentChapter.value)
-  const nextChapter = chapters[index + delta]
-  if (nextChapter) {
-    router.push(`/manga/${mangaId}/chapter/${nextChapter.id}`)
-  }
+const handleMouseMove = () => {
+  hideControls.value = false
+  clearTimeout(hideControlsTimeout)
+  hideControlsTimeout = setTimeout(() => {
+    hideControls.value = true
+  }, 3000)
 }
 
-const toggleReadingDirection = () => {
-  isVertical.value = !isVertical.value
-  singlePage.value = isVertical.value
-}
+const handleClick = (e: MouseEvent) => {
+  if (readingMode.value === 'single') {
+    const clickX = e.clientX
+    const windowWidth = window.innerWidth
 
-const togglePageLayout = () => {
-  if (!isVertical.value) {
-    singlePage.value = !singlePage.value
-  }
-}
-
-const showUI = () => {
-  hideUI.value = false
-  if (uiTimeout.value) {
-    clearTimeout(uiTimeout.value)
-  }
-}
-
-const toggleUI = () => {
-  hideUI.value = !hideUI.value
-  if (!hideUI.value && !isVertical.value) {
-    uiTimeout.value = window.setTimeout(() => {
-      hideUI.value = true
-    }, 3000)
-  }
-}
-
-const handleImageLoad = () => {
-  loading.value = false
-}
-
-// Keyboard navigation
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'ArrowLeft') {
-    if (currentPageNumber.value > 1) {
-      currentPageNumber.value--
-    } else if (hasPrevChapter.value) {
-      navigateChapter(-1)
+    if (clickX < windowWidth / 3) {
+      previousPage()
+    } else if (clickX > (windowWidth * 2) / 3) {
+      nextPage()
     }
-  } else if (e.key === 'ArrowRight') {
-    if (currentPageNumber.value < totalPages.value) {
-      currentPageNumber.value++
-    } else if (hasNextChapter.value) {
-      navigateChapter(1)
-    }
-  } else if (e.key === ' ') {
-    e.preventDefault()
-    // Implement auto-scroll
+  }
+}
+
+const previousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  } else if (hasPreviousChapter.value) {
+    previousChapter()
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  } else if (hasNextChapter.value) {
+    nextChapter()
+  }
+}
+
+const changeChapter = () => {
+  router.push('/manga/' + mangaId + '/chapter/' + currentChapter.value)
+}
+
+const previousChapter = () => {
+  if (hasPreviousChapter.value) {
+    router.push('/manga/' + mangaId + '/chapter/' + (currentChapter.value - 1))
+  }
+}
+
+const nextChapter = () => {
+  if (hasNextChapter.value) {
+    router.push('/manga/' + mangaId + '/chapter/' + (currentChapter.value + 1))
   }
 }
 
 // Lifecycle
 onMounted(() => {
+  // Hide controls after 3 seconds
+  hideControlsTimeout = setTimeout(() => {
+    hideControls.value = true
+  }, 3000)
+
+  // Close settings when clicking outside
+  const handleClickOutside = (e: MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (!target.closest('.settings-menu')) {
+      showSettings.value = false
+    }
+  }
+  document.addEventListener('click', handleClickOutside)
+
+  // Keyboard navigation
+  const handleKeydown = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case 'ArrowLeft':
+        if (readingMode.value === 'single') {
+          previousPage()
+        }
+        break
+      case 'ArrowRight':
+        if (readingMode.value === 'single') {
+          nextPage()
+        }
+        break
+      case 'ArrowUp':
+        if (readingMode.value === 'vertical') {
+          window.scrollBy(0, -100)
+        }
+        break
+      case 'ArrowDown':
+        if (readingMode.value === 'vertical') {
+          window.scrollBy(0, 100)
+        }
+        break
+    }
+  }
   document.addEventListener('keydown', handleKeydown)
-})
 
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-  if (uiTimeout.value) {
-    clearTimeout(uiTimeout.value)
-  }
-})
-
-// Watch
-watch(currentChapter, (newChapterId) => {
-  router.push(`/manga/${mangaId}/chapter/${newChapterId}`)
-  currentPageNumber.value = 1
-  loading.value = true
-})
-
-watch(currentPageNumber, (newPage) => {
-  if (newPage === totalPages.value && hasNextChapter.value) {
-    // Show next chapter prompt
-  }
+  onUnmounted(() => {
+    clearTimeout(hideControlsTimeout)
+    document.removeEventListener('click', handleClickOutside)
+    document.removeEventListener('keydown', handleKeydown)
+  })
 })
 </script>
 
 <style scoped>
-.max-w-reader {
-  max-width: 1400px;
+.snap-x {
+  scroll-snap-type: x mandatory;
 }
 
-/* Hide scrollbar but allow scrolling */
-::-webkit-scrollbar {
+.snap-center {
+  scroll-snap-align: center;
+}
+
+/* Hide scrollbar */
+.overflow-x-auto {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
   display: none;
 }
-
-/* Custom range input styling */
-input[type="range"] {
-  height: 4px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 2px;
-  outline: none;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--primary-color);
-  cursor: pointer;
-}
-</style>
+</style> 

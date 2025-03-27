@@ -1,39 +1,128 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
 
-@layer base {
-  body {
-    @apply bg-background text-white font-sans antialiased;
-  }
+:root {
+  /* Colors */
+  --primary-color: #dc2626;
+  --secondary-color: #991b1b;
+  --accent-color: #ef4444;
+  --success-color: #34c759;
+  --warning-color: #ff9500;
+  --danger-color: #ff3b30;
+  
+  /* Theme Colors */
+  --dark-color: #111827;
+  --dark-secondary: #1f2937;
+  --light-color: #f3f4f6;
+  --light-secondary: #ffffff;
+  
+  /* Text Colors */
+  --text-color: #111827;
+  --text-light: #6b7280;
+  --text-dark: #ffffff;
+  --text-dark-light: #9ca3af;
+  
+  /* Border Colors */
+  --border-color: #e5e7eb;
+  --border-dark: #374151;
+  
+  /* Overlay Colors */
+  --overlay-color: rgba(0, 0, 0, 0.5);
 }
 
-@layer components {
-  .btn {
-    @apply px-4 py-2 rounded-lg transition-colors;
-  }
-
-  .btn-primary {
-    @apply bg-primary hover:bg-primary-dark text-white;
-  }
-
-  .input {
-    @apply w-full px-4 py-2 bg-background-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary;
-  }
-
-  .card {
-    @apply bg-background-light rounded-lg overflow-hidden;
-  }
+/* Base Styles */
+body {
+  font-family: 'Be Vietnam Pro', 'Roboto', sans-serif;
+  color: var(--text-color);
+  background-color: var(--light-color);
+  line-height: 1.5;
 }
 
-/* Custom scrollbar */
+body.dark {
+  color: var(--text-dark);
+  background-color: var(--dark-color);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+/* Utility Classes */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-color);
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--light-secondary);
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.dark .card {
+  background-color: var(--dark-secondary);
+}
+
+/* Animation Classes */
+.hover-grow {
+  transition: transform 0.2s ease;
+}
+
+.hover-grow:hover {
+  transform: translateY(-3px);
+}
+
+/* Gradient Effects */
+.manga-gradient {
+  background: linear-gradient(to right, var(--primary-color), var(--accent-color));
+}
+
+.overlay-gradient {
+  background: linear-gradient(to top, var(--overlay-color), transparent);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-background;
+  background-color: var(--light-color);
+}
+
+.dark ::-webkit-scrollbar-track {
+  background-color: var(--dark-color);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-primary/50 rounded-full hover:bg-primary;
+  background-color: var(--primary-color);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--secondary-color);
 } 

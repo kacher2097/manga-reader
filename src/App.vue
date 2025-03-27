@@ -1,137 +1,99 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-// Component logic here
-</script>
-
 <template>
-  <div class="min-h-screen bg-background text-white">
-    <header class="fixed top-0 left-0 right-0 h-header bg-background/95 backdrop-blur-sm z-50">
-      <nav class="max-w-container mx-auto px-4 h-full flex items-center justify-between">
-        <!-- Logo -->
-        <div class="text-2xl font-anime text-primary">
-          MangaHub
-        </div>
-
-        <!-- Search Bar -->
-        <div class="relative w-[300px]">
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm manga..." 
-            class="w-full px-4 py-2 bg-background-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-          >
-          <span class="absolute right-3 top-1/2 -translate-y-1/2">
-            🔍
-          </span>
-        </div>
-
-        <!-- Navigation Menu -->
-        <div class="flex items-center gap-6">
-          <a href="#" class="hover:text-primary transition-colors">Trang chủ</a>
-          <a href="#" class="hover:text-primary transition-colors">Thể loại</a>
-          <a href="#" class="hover:text-primary transition-colors">Mới nhất</a>
-          <a href="#" class="hover:text-primary transition-colors">Yêu thích</a>
-          <button class="px-4 py-2 bg-primary rounded-lg hover:bg-primary-dark transition-colors">
-            Đăng nhập
-          </button>
-        </div>
-      </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <section class="h-hero mt-header relative bg-[url('/hero-bg.jpg')] bg-cover bg-center">
-      <div class="absolute inset-0 bg-black/50"></div>
-      <div class="relative max-w-container mx-auto px-4 h-full flex flex-col justify-center">
-        <h1 class="text-4xl font-bold mb-4">One Piece</h1>
-        <p class="text-gray-300 max-w-xl mb-6">
-          Theo chân cuộc phiêu lưu của Monkey D. Luffy và băng hải tặc Mũ Rơm trong hành trình trở thành Vua Hải Tặc
-        </p>
-        <button class="px-6 py-3 bg-primary rounded-lg hover:bg-primary-dark transition-colors w-fit">
-          Đọc ngay
-        </button>
-      </div>
-    </section>
+  <div class="min-h-screen bg-gray-50">
+    <!-- Navigation -->
+    <TheNavigation />
 
     <!-- Main Content -->
-    <main class="max-w-container mx-auto px-4 py-12">
-      <div class="flex gap-8">
-        <!-- Sidebar -->
-        <aside class="w-[300px] shrink-0">
-          <div class="bg-background-light rounded-lg p-4">
-            <h2 class="text-xl font-bold mb-4">Thể loại</h2>
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="accent-primary">
-                <span>Shonen</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="accent-primary">
-                <span>Shojo</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" class="accent-primary">
-                <span>Seinen</span>
-              </label>
-            </div>
-          </div>
-        </aside>
-
-        <!-- Manga Grid -->
-        <div class="flex-1">
-          <div class="grid grid-cols-4 gap-6">
-            <!-- Manga Card -->
-            <div class="bg-background-light rounded-lg overflow-hidden">
-              <img alt="Manga Cover" class="w-full aspect-[2/3] object-cover">
-              <div class="p-4">
-                <h3 class="font-bold mb-2">Naruto</h3>
-                <p class="text-sm text-gray-400">Chapter 700</p>
-                <div class="flex items-center gap-1 mt-2">
-                  ⭐⭐⭐⭐⭐
-                </div>
-              </div>
-            </div>
-            <!-- Repeat manga cards -->
-          </div>
-        </div>
-      </div>
+    <main>
+      <router-view></router-view>
     </main>
 
     <!-- Footer -->
-    <footer class="bg-background">
-      <div class="max-w-container mx-auto px-4 py-12">
-        <div class="grid grid-cols-3 gap-8">
+    <footer class="bg-gray-800 text-gray-400 py-8">
+      <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <!-- About -->
           <div>
-            <h2 class="text-2xl font-anime text-primary mb-4">MangaHub</h2>
-            <p class="text-gray-400">
-              Nền tảng đọc manga trực tuyến hàng đầu Việt Nam
+            <h3 class="text-white text-lg font-bold mb-4">Về MangaHub</h3>
+            <p class="text-sm">
+              Nền tảng đọc manga trực tuyến hàng đầu Việt Nam với kho truyện đa dạng và cập nhật nhanh nhất.
             </p>
           </div>
+
+          <!-- Quick Links -->
           <div>
-            <h3 class="font-bold mb-4">Liên kết</h3>
-            <div class="space-y-2">
-              <a href="#" class="block text-gray-400 hover:text-primary">Chính sách</a>
-              <a href="#" class="block text-gray-400 hover:text-primary">Liên hệ</a>
-              <a href="#" class="block text-gray-400 hover:text-primary">FAQ</a>
-            </div>
+            <h3 class="text-white text-lg font-bold mb-4">Liên kết</h3>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <router-link to="/terms" class="hover:text-red-500 transition-colors">
+                  Điều khoản sử dụng
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/privacy" class="hover:text-red-500 transition-colors">
+                  Chính sách bảo mật
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/dmca" class="hover:text-red-500 transition-colors">
+                  DMCA
+                </router-link>
+              </li>
+            </ul>
           </div>
+
+          <!-- Support -->
           <div>
-            <h3 class="font-bold mb-4">Mạng xã hội</h3>
-            <div class="flex gap-4">
-              <a href="#" class="text-gray-400 hover:text-primary">FB</a>
-              <a href="#" class="text-gray-400 hover:text-primary">DC</a>
-              <a href="#" class="text-gray-400 hover:text-primary">TW</a>
+            <h3 class="text-white text-lg font-bold mb-4">Hỗ trợ</h3>
+            <ul class="space-y-2 text-sm">
+              <li>
+                <router-link to="/faq" class="hover:text-red-500 transition-colors">
+                  FAQ
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/contact" class="hover:text-red-500 transition-colors">
+                  Liên hệ
+                </router-link>
+              </li>
+              <li>
+                <router-link to="/report" class="hover:text-red-500 transition-colors">
+                  Báo lỗi
+                </router-link>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Community -->
+          <div>
+            <h3 class="text-white text-lg font-bold mb-4">Cộng đồng</h3>
+            <div class="flex space-x-4">
+              <a href="#" class="hover:text-red-500 transition-colors">
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a href="#" class="hover:text-red-500 transition-colors">
+                <i class="fab fa-discord"></i>
+              </a>
+              <a href="#" class="hover:text-red-500 transition-colors">
+                <i class="fab fa-twitter"></i>
+              </a>
             </div>
           </div>
         </div>
-        <div class="mt-8 pt-8 border-t border-gray-800 text-center text-gray-400">
-          © 2025 MangaHub. All rights reserved.
+
+        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm">
+          © 2024 MangaHub. All rights reserved.
         </div>
       </div>
     </footer>
   </div>
 </template>
 
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+<script setup lang="ts">
+import TheNavigation from './components/TheNavigation.vue'
+</script>
 
+<style>
+/* Font Awesome */
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
 </style>

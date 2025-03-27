@@ -1,63 +1,38 @@
 <template>
-  <div class="pt-header">
-    <div class="max-w-container mx-auto px-4 py-12">
-      <h1 class="text-3xl font-bold mb-8">Thể loại manga</h1>
-      
-      <!-- Categories Grid -->
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <router-link
+  <div class="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-white mb-4">Thể loại manga</h1>
+        <p class="text-gray-400">Khám phá manga theo thể loại yêu thích của bạn</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div
           v-for="category in categories"
           :key="category.id"
-          :to="`/categories/${category.id}`"
-          class="group relative aspect-video rounded-lg overflow-hidden"
+          class="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300"
         >
-          <img 
-            :src="category.image" 
-            :alt="category.name"
-            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-          >
-          <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
-            <div>
-              <h3 class="text-xl font-bold mb-1">{{ category.name }}</h3>
-              <p class="text-sm text-gray-300">{{ formatNumber(category.mangaCount) }} manga</p>
+          <router-link :to="`/category/${category.id}`">
+            <div class="relative h-48">
+              <img
+                :src="category.image"
+                :alt="category.name"
+                class="w-full h-full object-cover"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-4">
+                <h3 class="text-xl font-semibold text-white mb-1">{{ category.name }}</h3>
+                <p class="text-sm text-gray-300">{{ category.mangaCount }} manga</p>
+              </div>
             </div>
-          </div>
-        </router-link>
-      </div>
-
-      <!-- Popular Tags -->
-      <div class="mt-12">
-        <h2 class="text-2xl font-bold mb-6">Tags phổ biến</h2>
-        <div class="flex flex-wrap gap-3">
-          <button
-            v-for="tag in popularTags"
-            :key="tag.id"
-            class="px-4 py-2 rounded-full bg-background-light hover:bg-background transition-colors"
-            @click="selectTag(tag)"
-          >
-            {{ tag.name }}
-            <span class="text-sm text-gray-400 ml-2">({{ formatNumber(tag.count) }})</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Filtered Manga List -->
-      <div v-if="selectedTag" class="mt-12">
-        <div class="flex items-center justify-between mb-6">
-          <h2 class="text-2xl font-bold">Manga với tag "{{ selectedTag.name }}"</h2>
-          <button 
-            class="text-gray-400 hover:text-primary"
-            @click="selectedTag = null"
-          >
-            Xóa bộ lọc
-          </button>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          <manga-card
-            v-for="manga in filteredManga"
-            :key="manga.id"
-            :manga="manga"
-          />
+            <div class="p-4">
+              <p class="text-gray-400 text-sm line-clamp-2">{{ category.description }}</p>
+              <div class="mt-4 flex items-center justify-between">
+                <span class="text-red-500 font-medium">Xem tất cả</span>
+                <i class="fas fa-arrow-right text-red-500"></i>
+              </div>
+            </div>
+          </router-link>
         </div>
       </div>
     </div>
@@ -65,82 +40,90 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import MangaCard from '../components/ui/MangaCard.vue'
-
-interface Category {
-  id: number
-  name: string
-  image: string
-  mangaCount: number
-}
-
-interface Tag {
-  id: number
-  name: string
-  count: number
-}
-
-// Mock data
-const categories: Category[] = [
+const categories = [
   {
-    id: 1,
+    id: 'action',
     name: 'Action',
-    image: '/categories/action.jpg',
-    mangaCount: 1500,
+    description: 'Thể loại này thường có nội dung về đánh nhau, bạo lực, hỗn loạn, với diễn biến nhanh.',
+    image: 'https://example.com/images/categories/action.jpg',
+    mangaCount: 1234
   },
   {
-    id: 2,
+    id: 'romance',
     name: 'Romance',
-    image: '/categories/romance.jpg',
-    mangaCount: 1200,
+    description: 'Thể loại lãng mạn, tình cảm, thường là những câu chuyện về tình yêu.',
+    image: 'https://example.com/images/categories/romance.jpg',
+    mangaCount: 987
   },
   {
-    id: 3,
+    id: 'comedy',
     name: 'Comedy',
-    image: '/categories/comedy.jpg',
-    mangaCount: 1000,
+    description: 'Thể loại có nội dung hài hước, đem lại tiếng cười cho độc giả.',
+    image: 'https://example.com/images/categories/comedy.jpg',
+    mangaCount: 856
   },
-  // Add more categories...
-]
-
-const popularTags: Tag[] = [
-  { id: 1, name: 'School Life', count: 500 },
-  { id: 2, name: 'Fantasy', count: 800 },
-  { id: 3, name: 'Magic', count: 300 },
-  { id: 4, name: 'Martial Arts', count: 400 },
-  { id: 5, name: 'Supernatural', count: 600 },
-  // Add more tags...
-]
-
-const filteredManga = [
   {
-    id: '1',
-    title: 'One Piece',
-    coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing' as 'ongoing', // Explicitly specify the literal type
-    latestChapter: 1089,
-    rating: 4.9,
-    views: 1500000,
+    id: 'fantasy',
+    name: 'Fantasy',
+    description: 'Thể loại xuất hiện những nhân vật, sự việc mang tính chất phép thuật, kỳ ảo.',
+    image: 'https://example.com/images/categories/fantasy.jpg',
+    mangaCount: 743
   },
-  // Add more manga...
+  {
+    id: 'horror',
+    name: 'Horror',
+    description: 'Thể loại kinh dị, rùng rợn, ghê sợ, có thể gây shock cho người xem.',
+    image: 'https://example.com/images/categories/horror.jpg',
+    mangaCount: 321
+  },
+  {
+    id: 'sci-fi',
+    name: 'Sci-fi',
+    description: 'Thể loại khoa học viễn tưởng, có nội dung về khoa học, công nghệ.',
+    image: 'https://example.com/images/categories/sci-fi.jpg',
+    mangaCount: 432
+  },
+  {
+    id: 'sports',
+    name: 'Sports',
+    description: 'Thể loại có nội dung về thể thao, các môn thể thao và tinh thần thể thao.',
+    image: 'https://example.com/images/categories/sports.jpg',
+    mangaCount: 234
+  },
+  {
+    id: 'mystery',
+    name: 'Mystery',
+    description: 'Thể loại thường xuất hiện những điều bí ẩn, những câu đố cần giải mã.',
+    image: 'https://example.com/images/categories/mystery.jpg',
+    mangaCount: 543
+  },
+  {
+    id: 'slice-of-life',
+    name: 'Slice of Life',
+    description: 'Thể loại phản ánh đời sống thường ngày, những câu chuyện đời thường.',
+    image: 'https://example.com/images/categories/slice-of-life.jpg',
+    mangaCount: 654
+  },
+  {
+    id: 'adventure',
+    name: 'Adventure',
+    description: 'Thể loại phiêu lưu, mạo hiểm, thường là hành trình của các nhân vật.',
+    image: 'https://example.com/images/categories/adventure.jpg',
+    mangaCount: 876
+  },
+  {
+    id: 'drama',
+    name: 'Drama',
+    description: 'Thể loại mang đến những cảm xúc mạnh mẽ: buồn bã, căng thẳng, xúc động.',
+    image: 'https://example.com/images/categories/drama.jpg',
+    mangaCount: 765
+  },
+  {
+    id: 'supernatural',
+    name: 'Supernatural',
+    description: 'Thể loại siêu nhiên, thường xuất hiện những sự việc vượt quá sức tưởng tượng.',
+    image: 'https://example.com/images/categories/supernatural.jpg',
+    mangaCount: 432
+  }
 ]
-
-// State
-const selectedTag = ref<Tag | null>(null)
-
-// Methods
-const formatNumber = (num: number): string => {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M'
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K'
-  }
-  return num.toString()
-}
-
-const selectTag = (tag: Tag) => {
-  selectedTag.value = tag
-}
 </script> 

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomePage from '../pages/HomePage.vue'
-import ReaderPage from '../pages/ReaderPage.vue'
 
 type Manga = {
   id: string;
@@ -20,32 +19,47 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomePage,
+      component: HomePage
     },
     {
       path: '/manga/:id',
-      name: 'manga-detail',
-      component: () => import('../pages/MangaDetailPage.vue'),
+      name: 'manga',
+      component: () => import('../pages/MangaPage.vue')
     },
     {
       path: '/manga/:id/chapter/:chapter',
-      name: 'manga-reader',
-      component: ReaderPage,
+      name: 'chapter',
+      component: () => import('../pages/ChapterPage.vue')
     },
     {
-      path: '/categories',
-      name: 'categories',
-      component: () => import('../pages/CategoriesPage.vue'),
+      path: '/reader/:mangaId/:chapterId',
+      name: 'reader',
+      component: () => import('../pages/ReaderPage.vue')
+    },
+    {
+      path: '/continue',
+      name: 'continue',
+      component: () => import('../pages/ContinuePage.vue')
     },
     {
       path: '/latest',
       name: 'latest',
-      component: () => import('../pages/LatestPage.vue'),
+      component: () => import('../pages/LatestPage.vue')
     },
     {
       path: '/popular',
       name: 'popular',
-      component: () => import('../pages/PopularPage.vue'),
+      component: () => import('../pages/PopularPage.vue')
+    },
+    {
+      path: '/categories',
+      name: 'categories',
+      component: () => import('../pages/CategoriesPage.vue')
+    },
+    {
+      path: '/category/:id',
+      name: 'category',
+      component: () => import('../pages/CategoryPage.vue')
     },
     {
       path: '/search',
@@ -75,11 +89,45 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/following',
+      name: 'following',
+      component: () => import('../pages/FollowingPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/history',
+      name: 'history',
+      component: () => import('../pages/HistoryPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/notifications',
+      name: 'notifications',
+      component: () => import('../pages/NotificationsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/settings',
+      name: 'settings',
+      component: () => import('../pages/SettingsPage.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/terms',
+      name: 'terms',
+      component: () => import('../pages/TermsPage.vue'),
+    },
+    {
+      path: '/privacy',
+      name: 'privacy',
+      component: () => import('../pages/PrivacyPage.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../pages/NotFoundPage.vue'),
     },
-  ],
+  ]
 })
 
 // Navigation guards

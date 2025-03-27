@@ -1,299 +1,338 @@
 <template>
-  <div class="pt-header">
-    <div class="max-w-container mx-auto px-4 py-12">
+  <div class="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
       <!-- Search Header -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-4">Kết quả tìm kiếm</h1>
-        <div class="flex items-center gap-4">
-          <div class="relative flex-1 max-w-xl">
-            <input 
-              v-model="searchQuery"
-              type="text"
-              placeholder="Tìm kiếm manga..."
-              class="w-full px-4 py-3 pr-12 bg-background-light rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              @keyup.enter="search"
-            >
-            <button 
-              class="absolute right-3 top-1/2 -translate-y-1/2 hover:text-primary"
-              @click="search"
-            >
-              <i class="i-heroicons-magnifying-glass-20-solid" />
-            </button>
-          </div>
-          <button 
-            class="btn bg-background-light hover:bg-background"
-            @click="showAdvancedSearch = !showAdvancedSearch"
-          >
-            <i class="i-heroicons-adjustments-horizontal-20-solid" />
-            <span class="ml-2">Tìm kiếm nâng cao</span>
-          </button>
-        </div>
+        <h1 class="text-3xl font-bold text-white mb-4">
+          Kết quả tìm kiếm cho "{{ searchQuery }}"
+        </h1>
+        <p class="text-gray-400">
+          Tìm thấy {{ totalResults }} kết quả
+        </p>
       </div>
 
       <!-- Advanced Search -->
-      <div 
-        v-show="showAdvancedSearch"
-        class="bg-background-light rounded-lg p-6 mb-8"
-      >
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-gray-800 rounded-lg p-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Status -->
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-2">
+              Trạng thái
+            </label>
+            <select
+              v-model="filter.status"
+              class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="">Tất cả</option>
+              <option value="ongoing">Đang tiến hành</option>
+              <option value="completed">Đã hoàn thành</option>
+            </select>
+          </div>
+
+          <!-- Sort -->
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-2">
+              Sắp xếp theo
+            </label>
+            <select
+              v-model="filter.sort"
+              class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="relevance">Độ phù hợp</option>
+              <option value="latest">Mới cập nhật</option>
+              <option value="views">Lượt xem</option>
+              <option value="rating">Đánh giá</option>
+              <option value="name">Tên A-Z</option>
+            </select>
+          </div>
+
           <!-- Categories -->
           <div>
-            <h3 class="font-bold mb-4">Thể loại</h3>
-            <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-              <label 
-                v-for="category in categories"
-                :key="category.id"
-                class="flex items-center gap-2 cursor-pointer"
+            <label class="block text-sm font-medium text-gray-400 mb-2">
+              Thể loại
+            </label>
+            <div class="relative">
+              <select
+                v-model="filter.category"
+                class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
               >
-                <input 
-                  type="checkbox"
-                  v-model="filters.categories"
-                  :value="category.id"
-                  class="accent-primary"
-                >
-                <span>{{ category.name }}</span>
-              </label>
+                <option value="">Tất cả</option>
+                <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                  {{ cat.name }}
+                </option>
+              </select>
             </div>
           </div>
 
-          <!-- Status & Type -->
-          <div class="space-y-6">
-            <div>
-              <h3 class="font-bold mb-4">Trạng thái</h3>
-              <div class="space-y-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    v-model="filters.ongoing"
-                    class="accent-primary"
-                  >
-                  <span>Đang cập nhật</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox"
-                    v-model="filters.completed"
-                    class="accent-primary"
-                  >
-                  <span>Đã hoàn thành</span>
-                </label>
-              </div>
-            </div>
-            <div>
-              <h3 class="font-bold mb-4">Loại</h3>
-              <div class="space-y-2">
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio"
-                    v-model="filters.type"
-                    value="manga"
-                    class="accent-primary"
-                  >
-                  <span>Manga</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio"
-                    v-model="filters.type"
-                    value="manhwa"
-                    class="accent-primary"
-                  >
-                  <span>Manhwa</span>
-                </label>
-                <label class="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="radio"
-                    v-model="filters.type"
-                    value="manhua"
-                    class="accent-primary"
-                  >
-                  <span>Manhua</span>
-                </label>
-              </div>
-            </div>
+          <!-- Year -->
+          <div>
+            <label class="block text-sm font-medium text-gray-400 mb-2">
+              Năm xuất bản
+            </label>
+            <select
+              v-model="filter.year"
+              class="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="">Tất cả</option>
+              <option v-for="year in years" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
           </div>
+        </div>
 
-          <!-- Sort & Order -->
-          <div class="space-y-6">
-            <div>
-              <h3 class="font-bold mb-4">Sắp xếp theo</h3>
-              <select 
-                v-model="filters.sort"
-                class="w-full bg-background rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="relevance">Độ phù hợp</option>
-                <option value="latest">Mới cập nhật</option>
-                <option value="views">Lượt xem</option>
-                <option value="rating">Đánh giá</option>
-              </select>
-            </div>
-            <div>
-              <h3 class="font-bold mb-4">Thứ tự</h3>
-              <select 
-                v-model="filters.order"
-                class="w-full bg-background rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="desc">Giảm dần</option>
-                <option value="asc">Tăng dần</option>
-              </select>
-            </div>
+        <!-- Tags -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-400 mb-2">
+            Tags
+          </label>
+          <div class="flex flex-wrap gap-2">
+            <button
+              v-for="tag in popularTags"
+              :key="tag.id"
+              @click="toggleTag(tag.id)"
+              :class="[
+                'px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200',
+                filter.tags.includes(tag.id)
+                  ? 'bg-red-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              ]"
+            >
+              {{ tag.name }}
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Search Results -->
-      <template v-if="loading">
-        <div class="flex items-center justify-center py-12">
-          <div class="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+      <!-- Results -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        <div
+          v-for="manga in searchResults"
+          :key="manga.id"
+          class="group"
+        >
+          <router-link :to="`/manga/${manga.id}`">
+            <div class="relative aspect-[3/4] rounded-lg overflow-hidden mb-3">
+              <img
+                :src="manga.cover"
+                :alt="manga.title"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+              <div class="absolute top-2 left-2">
+                <span
+                  :class="[
+                    'px-2 py-1 rounded text-xs font-medium',
+                    manga.status === 'ongoing' ? 'bg-green-500' : 'bg-blue-500'
+                  ]"
+                >
+                  {{ manga.status === 'ongoing' ? 'Đang tiến hành' : 'Hoàn thành' }}
+                </span>
+              </div>
+              <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="text-white">Ch.{{ manga.latestChapter }}</span>
+                  <span class="text-gray-400">{{ manga.updatedAt }}</span>
+                </div>
+              </div>
+            </div>
+            <h3 class="font-medium text-white group-hover:text-red-500 transition-colors duration-300 line-clamp-2">
+              {{ manga.title }}
+            </h3>
+            <div class="flex items-center gap-3 mt-1 text-sm text-gray-400">
+              <div class="flex items-center">
+                <i class="fas fa-eye mr-1"></i>
+                <span>{{ formatNumber(manga.views) }}</span>
+              </div>
+              <div class="flex items-center">
+                <i class="fas fa-star text-yellow-400 mr-1"></i>
+                <span>{{ manga.rating.toFixed(1) }}</span>
+              </div>
+            </div>
+          </router-link>
         </div>
-      </template>
-      <template v-else-if="searchResults.length > 0">
-        <div class="mb-6 text-gray-400">
-          Tìm thấy {{ totalResults }} kết quả cho "{{ searchQuery }}"
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          <manga-card
-            v-for="manga in searchResults"
-            :key="manga.id"
-            :manga="manga"
-          />
-        </div>
-        <!-- Pagination -->
-        <div class="flex justify-center mt-12">
-          <div class="flex items-center gap-2">
-            <button 
-              class="w-10 h-10 flex items-center justify-center rounded-lg bg-background-light hover:bg-background disabled:opacity-50"
-              :disabled="currentPage === 1"
-              @click="currentPage--"
-            >
-              <i class="i-heroicons-chevron-left-20-solid" />
-            </button>
-            <button 
-              v-for="page in totalPages"
-              :key="page"
-              class="w-10 h-10 flex items-center justify-center rounded-lg"
-              :class="page === currentPage ? 'bg-primary text-white' : 'bg-background-light hover:bg-background'"
-              @click="currentPage = page"
-            >
-              {{ page }}
-            </button>
-            <button 
-              class="w-10 h-10 flex items-center justify-center rounded-lg bg-background-light hover:bg-background disabled:opacity-50"
-              :disabled="currentPage === totalPages"
-              @click="currentPage++"
-            >
-              <i class="i-heroicons-chevron-right-20-solid" />
-            </button>
-          </div>
-        </div>
-      </template>
-      <template v-else>
-        <div class="text-center py-12">
-          <div class="text-6xl mb-4">🔍</div>
-          <h2 class="text-2xl font-bold mb-2">Không tìm thấy kết quả</h2>
-          <p class="text-gray-400">
-            Thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc
-          </p>
-        </div>
-      </template>
+      </div>
+
+      <!-- Loading -->
+      <div
+        v-if="loading"
+        class="flex justify-center items-center py-8"
+      >
+        <div class="animate-spin rounded-full h-8 w-8 border-2 border-red-500 border-t-transparent"></div>
+      </div>
+
+      <!-- Load More -->
+      <div
+        v-if="!loading && hasMore"
+        class="flex justify-center mt-8"
+      >
+        <button
+          @click="loadMore"
+          class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        >
+          Xem thêm
+        </button>
+      </div>
+
+      <!-- No Results -->
+      <div
+        v-if="!loading && searchResults.length === 0"
+        class="text-center py-12"
+      >
+        <i class="fas fa-search text-4xl text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-medium text-white mb-2">Không tìm thấy kết quả</h3>
+        <p class="text-gray-400">
+          Thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc
+        </p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import MangaCard from '../components/ui/MangaCard.vue'
-
-interface Manga {
-  id: string
-  title: string
-  coverImage: string
-  status: 'ongoing' | 'completed'
-  latestChapter: number
-  rating: number
-  views: number
-}
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 
 const route = useRoute()
-const router = useRouter()
+const searchQuery = computed(() => route.query.q || '')
+
+// Filter state
+const filter = ref({
+  status: '',
+  sort: 'relevance',
+  category: '',
+  year: '',
+  tags: [] as string[]
+})
 
 // Mock data
 const categories = [
-  { id: 1, name: 'Action' },
-  { id: 2, name: 'Adventure' },
-  { id: 3, name: 'Comedy' },
-  { id: 4, name: 'Drama' },
-  { id: 5, name: 'Fantasy' },
-  { id: 6, name: 'Horror' },
-  { id: 7, name: 'Romance' },
-  { id: 8, name: 'Sci-fi' }
+  { id: 'action', name: 'Action' },
+  { id: 'romance', name: 'Romance' },
+  { id: 'comedy', name: 'Comedy' },
+  { id: 'fantasy', name: 'Fantasy' },
+  { id: 'horror', name: 'Horror' },
+  { id: 'sci-fi', name: 'Sci-fi' }
 ]
 
-const searchResults = ref<Manga[]>([])
+const years = Array.from({ length: 24 }, (_, i) => 2024 - i)
 
-// State
-const searchQuery = ref('')
-const showAdvancedSearch = ref(false)
+const popularTags = [
+  { id: 'school-life', name: 'School Life' },
+  { id: 'supernatural', name: 'Supernatural' },
+  { id: 'martial-arts', name: 'Martial Arts' },
+  { id: 'mystery', name: 'Mystery' },
+  { id: 'adventure', name: 'Adventure' },
+  { id: 'drama', name: 'Drama' },
+  { id: 'psychological', name: 'Psychological' },
+  { id: 'slice-of-life', name: 'Slice of Life' }
+]
+
+// Search results
+const searchResults = ref([
+  {
+    id: '1',
+    title: 'One Piece',
+    cover: 'https://example.com/images/manga/one-piece.jpg',
+    status: 'ongoing',
+    latestChapter: 1089,
+    updatedAt: '1 giờ trước',
+    views: 1234567,
+    rating: 4.9
+  },
+  {
+    id: '2',
+    title: 'Naruto',
+    cover: 'https://example.com/images/manga/naruto.jpg',
+    status: 'completed',
+    latestChapter: 700,
+    updatedAt: '2 giờ trước',
+    views: 987654,
+    rating: 4.8
+  }
+])
+
 const loading = ref(false)
-const currentPage = ref(1)
-const totalResults = ref(0)
-const totalPages = ref(1)
+const hasMore = ref(true)
+const page = ref(1)
+const totalResults = ref(1234)
 
-const filters = ref({
-  categories: [],
-  ongoing: false,
-  completed: false,
-  type: 'manga',
-  sort: 'relevance',
-  order: 'desc',
-})
-
-// Methods
-const search = async () => {
-  if (!searchQuery.value.trim()) return
-
-  loading.value = true
-  router.push({
-    path: '/search',
-    query: {
-      q: searchQuery.value,
-      page: currentPage.value.toString(),
-      categories: filters.value.categories,
-      ongoing: filters.value.ongoing.toString(),
-      completed: filters.value.completed.toString(),
-      type: filters.value.type,
-      sort: filters.value.sort,
-      order: filters.value.order,
-    },
-  })
-
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000))
-
-  // Mock results
-  searchResults.value = [
-    {
-      id: '1',
-      title: 'One Piece',
-      coverImage: '/manga/one-piece.jpg',
-      status: 'ongoing',
-      latestChapter: 1089,
-      rating: 4.9,
-      views: 1500000,
-    },
-    // Add more results...
-  ]
-  totalResults.value = 100
-  totalPages.value = 5
-  loading.value = false
+// Format number helper
+const formatNumber = (num: number) => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K'
+  }
+  return num.toString()
 }
 
-// Lifecycle
-onMounted(() => {
-  if (route.query.q) {
-    searchQuery.value = route.query.q as string
-    search()
+// Toggle tag selection
+const toggleTag = (tagId: string) => {
+  const index = filter.value.tags.indexOf(tagId)
+  if (index === -1) {
+    filter.value.tags.push(tagId)
+  } else {
+    filter.value.tags.splice(index, 1)
   }
+}
+
+// Load more results
+const loadMore = async () => {
+  if (loading.value) return
+  
+  loading.value = true
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Mock new data
+    const newResults = [
+      {
+        id: '3',
+        title: 'Dragon Ball',
+        cover: 'https://example.com/images/manga/dragon-ball.jpg',
+        status: 'completed',
+        latestChapter: 519,
+        updatedAt: '3 giờ trước',
+        views: 876543,
+        rating: 4.7
+      },
+      {
+        id: '4',
+        title: 'Bleach',
+        cover: 'https://example.com/images/manga/bleach.jpg',
+        status: 'completed',
+        latestChapter: 686,
+        updatedAt: '4 giờ trước',
+        views: 765432,
+        rating: 4.6
+      }
+    ]
+    
+    searchResults.value.push(...newResults)
+    page.value++
+    
+    // Check if there's more data
+    hasMore.value = page.value < 5
+  } catch (error) {
+    console.error('Error loading more results:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Watch for filter changes
+watch([filter, searchQuery], () => {
+  // Reset and reload data
+  searchResults.value = []
+  page.value = 1
+  hasMore.value = true
+  loadMore()
+}, { deep: true })
+
+// Initial load
+onMounted(() => {
+  loadMore()
 })
 </script> 

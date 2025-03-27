@@ -1,178 +1,170 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center py-12 px-4">
+  <div class="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
+      <!-- Header -->
       <div class="text-center">
-        <router-link to="/" class="text-3xl font-anime text-primary">
-          MangaHub
+        <router-link to="/" class="flex items-center justify-center mb-6">
+          <span class="text-3xl font-bold text-red-500">Manga<span class="text-white">Hub</span></span>
         </router-link>
-        <h2 class="mt-6 text-2xl font-bold">Tạo tài khoản mới</h2>
-        <p class="mt-2 text-gray-400">
+        <h2 class="text-3xl font-bold text-white">
+          Đăng ký tài khoản mới
+        </h2>
+        <p class="mt-2 text-sm text-gray-400">
           Hoặc
-          <router-link to="/login" class="text-primary hover:underline">
+          <router-link to="/login" class="font-medium text-red-500 hover:text-red-400">
             đăng nhập nếu đã có tài khoản
           </router-link>
         </p>
       </div>
 
-      <form class="mt-8 space-y-6" @submit.prevent="handleRegister">
-        <!-- Alert -->
-        <div 
-          v-if="error"
-          class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded-lg"
-        >
-          {{ error }}
-        </div>
-
-        <!-- Username -->
-        <div>
-          <label for="username" class="block text-sm font-medium mb-2">
-            Tên người dùng
-          </label>
-          <input
-            id="username"
-            v-model="username"
-            type="text"
-            required
-            class="input"
-            :disabled="loading"
-          >
-        </div>
-
-        <!-- Email -->
-        <div>
-          <label for="email" class="block text-sm font-medium mb-2">
-            Email
-          </label>
-          <input
-            id="email"
-            v-model="email"
-            type="email"
-            required
-            class="input"
-            :disabled="loading"
-          >
-        </div>
-
-        <!-- Password -->
-        <div>
-          <label for="password" class="block text-sm font-medium mb-2">
-            Mật khẩu
-          </label>
-          <div class="relative">
+      <!-- Registration Form -->
+      <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
+        <div class="rounded-md shadow-sm space-y-4">
+          <div>
+            <label for="username" class="sr-only">Tên người dùng</label>
+            <input
+              id="username"
+              v-model="username"
+              name="username"
+              type="text"
+              required
+              :class="[
+                'appearance-none rounded-lg relative block w-full px-4 py-3 border',
+                'bg-gray-800 text-white placeholder-gray-400',
+                'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
+                {'border-red-500': errors.username}
+              ]"
+              placeholder="Tên người dùng"
+            />
+            <p v-if="errors.username" class="mt-2 text-sm text-red-500">{{ errors.username }}</p>
+          </div>
+          <div>
+            <label for="email" class="sr-only">Email</label>
+            <input
+              id="email"
+              v-model="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+              :class="[
+                'appearance-none rounded-lg relative block w-full px-4 py-3 border',
+                'bg-gray-800 text-white placeholder-gray-400',
+                'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
+                {'border-red-500': errors.email}
+              ]"
+              placeholder="Email"
+            />
+            <p v-if="errors.email" class="mt-2 text-sm text-red-500">{{ errors.email }}</p>
+          </div>
+          <div>
+            <label for="password" class="sr-only">Mật khẩu</label>
             <input
               id="password"
               v-model="password"
-              :type="showPassword ? 'text' : 'password'"
+              name="password"
+              type="password"
+              autocomplete="new-password"
               required
-              class="input pr-12"
-              :disabled="loading"
-            >
-            <button
-              type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              @click="showPassword = !showPassword"
-            >
-              <i 
-                :class="showPassword ? 'i-heroicons-eye-slash-20-solid' : 'i-heroicons-eye-20-solid'"
-              />
-            </button>
+              :class="[
+                'appearance-none rounded-lg relative block w-full px-4 py-3 border',
+                'bg-gray-800 text-white placeholder-gray-400',
+                'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
+                {'border-red-500': errors.password}
+              ]"
+              placeholder="Mật khẩu"
+            />
+            <p v-if="errors.password" class="mt-2 text-sm text-red-500">{{ errors.password }}</p>
           </div>
-          <p class="mt-2 text-sm text-gray-400">
-            Mật khẩu phải có ít nhất 8 ký tự
-          </p>
-        </div>
-
-        <!-- Confirm Password -->
-        <div>
-          <label for="confirmPassword" class="block text-sm font-medium mb-2">
-            Xác nhận mật khẩu
-          </label>
-          <div class="relative">
+          <div>
+            <label for="confirmPassword" class="sr-only">Xác nhận mật khẩu</label>
             <input
               id="confirmPassword"
               v-model="confirmPassword"
-              :type="showConfirmPassword ? 'text' : 'password'"
+              name="confirmPassword"
+              type="password"
+              autocomplete="new-password"
               required
-              class="input pr-12"
-              :disabled="loading"
-            >
-            <button
-              type="button"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-              @click="showConfirmPassword = !showConfirmPassword"
-            >
-              <i 
-                :class="showConfirmPassword ? 'i-heroicons-eye-slash-20-solid' : 'i-heroicons-eye-20-solid'"
-              />
-            </button>
+              :class="[
+                'appearance-none rounded-lg relative block w-full px-4 py-3 border',
+                'bg-gray-800 text-white placeholder-gray-400',
+                'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
+                {'border-red-500': errors.confirmPassword}
+              ]"
+              placeholder="Xác nhận mật khẩu"
+            />
+            <p v-if="errors.confirmPassword" class="mt-2 text-sm text-red-500">{{ errors.confirmPassword }}</p>
           </div>
         </div>
 
-        <!-- Terms -->
-        <div>
-          <label class="flex items-start gap-2 cursor-pointer">
-            <input 
-              type="checkbox"
-              v-model="agreeToTerms"
-              class="accent-primary mt-1"
-              required
-              :disabled="loading"
-            >
-            <span class="text-sm">
-              Tôi đồng ý với
-              <router-link to="/terms" class="text-primary hover:underline">
-                Điều khoản sử dụng
-              </router-link>
-              và
-              <router-link to="/privacy" class="text-primary hover:underline">
-                Chính sách bảo mật
-              </router-link>
-            </span>
+        <div class="flex items-center">
+          <input
+            id="terms"
+            v-model="acceptTerms"
+            name="terms"
+            type="checkbox"
+            required
+            class="h-4 w-4 text-red-500 focus:ring-red-500 border-gray-700 rounded bg-gray-800"
+          />
+          <label for="terms" class="ml-2 block text-sm text-gray-400">
+            Tôi đồng ý với
+            <router-link to="/terms" class="font-medium text-red-500 hover:text-red-400">
+              điều khoản sử dụng
+            </router-link>
+            và
+            <router-link to="/privacy" class="font-medium text-red-500 hover:text-red-400">
+              chính sách bảo mật
+            </router-link>
           </label>
         </div>
 
-        <!-- Submit -->
-        <button
-          type="submit"
-          class="btn btn-primary w-full"
-          :disabled="loading || !isFormValid"
-        >
-          <template v-if="loading">
-            <i class="i-heroicons-arrow-path-20-solid animate-spin" />
-            <span class="ml-2">Đang đăng ký...</span>
-          </template>
-          <span v-else>Đăng ký</span>
-        </button>
-
-        <!-- Social Register -->
-        <div class="relative">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-gray-700"></div>
-          </div>
-          <div class="relative flex justify-center text-sm">
-            <span class="px-2 bg-background text-gray-400">
-              Hoặc đăng ký với
+        <div>
+          <button
+            type="submit"
+            :disabled="loading"
+            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-red-500 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+              <i class="fas fa-user-plus"></i>
             </span>
-          </div>
+            <span v-if="!loading">Đăng ký</span>
+            <span v-else class="flex items-center">
+              <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Đang xử lý...
+            </span>
+          </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            class="btn bg-background-light hover:bg-background flex items-center justify-center gap-2"
-            :disabled="loading"
-          >
-            <i class="i-heroicons-google-20-solid" />
-            Google
-          </button>
-          <button
-            type="button"
-            class="btn bg-background-light hover:bg-background flex items-center justify-center gap-2"
-            :disabled="loading"
-          >
-            <i class="i-heroicons-facebook-20-solid" />
-            Facebook
-          </button>
+        <!-- Social Registration -->
+        <div class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-700"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-gray-900 text-gray-400">Hoặc đăng ký với</span>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              class="w-full inline-flex justify-center py-3 px-4 rounded-lg border border-gray-700 bg-gray-800 text-sm font-medium text-white hover:bg-gray-700"
+            >
+              <i class="fab fa-google text-red-500 mr-2"></i>
+              Google
+            </button>
+            <button
+              type="button"
+              class="w-full inline-flex justify-center py-3 px-4 rounded-lg border border-gray-700 bg-gray-800 text-sm font-medium text-white hover:bg-gray-700"
+            >
+              <i class="fab fa-facebook text-blue-500 mr-2"></i>
+              Facebook
+            </button>
+          </div>
         </div>
       </form>
     </div>
@@ -180,51 +172,92 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-// State
+// Form state
 const username = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
-const showPassword = ref(false)
-const showConfirmPassword = ref(false)
-const agreeToTerms = ref(false)
+const acceptTerms = ref(false)
 const loading = ref(false)
-const error = ref('')
-
-// Computed
-const isFormValid = computed(() => {
-  return (
-    username.value.trim() &&
-    email.value.trim() &&
-    password.value.length >= 8 &&
-    password.value === confirmPassword.value &&
-    agreeToTerms.value
-  )
+const errors = ref({
+  username: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
 })
 
-// Methods
-const handleRegister = async () => {
+// Form validation
+const validateForm = () => {
+  let isValid = true
+  errors.value = {
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  }
+
+  // Username validation
+  if (!username.value) {
+    errors.value.username = 'Tên người dùng không được để trống'
+    isValid = false
+  } else if (username.value.length < 3) {
+    errors.value.username = 'Tên người dùng phải có ít nhất 3 ký tự'
+    isValid = false
+  }
+
+  // Email validation
+  if (!email.value) {
+    errors.value.email = 'Email không được để trống'
+    isValid = false
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    errors.value.email = 'Email không hợp lệ'
+    isValid = false
+  }
+
+  // Password validation
+  if (!password.value) {
+    errors.value.password = 'Mật khẩu không được để trống'
+    isValid = false
+  } else if (password.value.length < 6) {
+    errors.value.password = 'Mật khẩu phải có ít nhất 6 ký tự'
+    isValid = false
+  }
+
+  // Confirm password validation
+  if (!confirmPassword.value) {
+    errors.value.confirmPassword = 'Vui lòng xác nhận mật khẩu'
+    isValid = false
+  } else if (confirmPassword.value !== password.value) {
+    errors.value.confirmPassword = 'Mật khẩu xác nhận không khớp'
+    isValid = false
+  }
+
+  return isValid
+}
+
+// Form submission
+const handleSubmit = async () => {
+  if (!validateForm()) return
+  if (!acceptTerms.value) {
+    alert('Vui lòng đồng ý với điều khoản sử dụng và chính sách bảo mật')
+    return
+  }
+
+  loading.value = true
   try {
-    loading.value = true
-    error.value = ''
-
-    // Validate form
-    if (!isFormValid.value) {
-      throw new Error('Vui lòng điền đầy đủ thông tin')
-    }
-
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
-
-    // Mock register success
+    
+    // Mock successful registration
     router.push('/login')
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Có lỗi xảy ra'
+  } catch (error) {
+    console.error('Registration error:', error)
+    // Handle error
   } finally {
     loading.value = false
   }

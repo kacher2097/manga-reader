@@ -1,198 +1,272 @@
 <template>
-  <div>
-    <!-- Hero Section -->
-    <section class="h-hero mt-header relative">
-      <swiper
-        :modules="[Autoplay, Pagination, Navigation]"
-        :slides-per-view="1"
-        :loop="true"
-        :autoplay="{ delay: 5000 }"
-        :pagination="{ clickable: true }"
-        :navigation="true"
-      >
-        <swiper-slide v-for="manga in featuredManga" :key="manga.id">
-          <div 
-            class="h-hero bg-cover bg-center relative"
-            :style="{ backgroundImage: `url(${manga.coverImage})` }"
-          >
-            <div class="absolute inset-0 bg-black/50"></div>
-            <div class="relative max-w-container mx-auto px-4 h-full flex flex-col justify-center">
-              <h1 class="text-4xl font-bold mb-4">{{ manga.title }}</h1>
-              <p class="text-gray-300 max-w-xl mb-6">
-                {{ manga.description }}
-              </p>
-              <router-link 
-                :to="`/manga/${manga.id}`"
-                class="px-6 py-3 bg-primary rounded-lg hover:bg-primary-dark transition-colors w-fit"
-              >
-                Đọc ngay
-              </router-link>
+  <div class="min-h-screen bg-gray-900 text-gray-100">
+    <!-- Trending Manga Slider -->
+    <section class="bg-gradient-to-b from-gray-800 to-gray-900 py-8">
+      <div class="container mx-auto px-4">
+        <swiper
+          :modules="[Autoplay, Pagination, Navigation]"
+          :slides-per-view="1"
+          :loop="true"
+          :autoplay="{ delay: 5000 }"
+          :pagination="{ clickable: true }"
+          :navigation="true"
+          class="h-[400px] rounded-xl overflow-hidden"
+        >
+          <swiper-slide v-for="manga in trendingManga" :key="manga.id">
+            <div class="relative h-full">
+              <img 
+                :src="manga.cover"
+                :alt="manga.title"
+                class="w-full h-full object-cover"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent">
+                <div class="absolute bottom-0 left-0 p-8">
+                  <h1 class="text-4xl font-bold mb-4">{{ manga.title }}</h1>
+                  <p class="text-lg text-gray-200 mb-6 max-w-2xl line-clamp-2">
+                    {{ manga.description }}
+                  </p>
+                  <router-link 
+                    :to="`/manga/${manga.id}`"
+                    class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors inline-flex items-center"
+                  >
+                    <span>Đọc ngay</span>
+                    <i class="fas fa-arrow-right ml-2"></i>
+                  </router-link>
+                </div>
+              </div>
             </div>
-          </div>
-        </swiper-slide>
-      </swiper>
+          </swiper-slide>
+        </swiper>
+      </div>
     </section>
 
-    <!-- Main Content -->
-    <main class="max-w-container mx-auto px-4 py-12">
-      <div class="flex gap-8">
-        <!-- Sidebar -->
-        <aside class="w-[300px] shrink-0 space-y-6">
-          <!-- Categories -->
-          <div class="bg-background-light rounded-lg p-4">
-            <h2 class="text-xl font-bold mb-4">Thể loại</h2>
-            <div class="space-y-2">
-              <label 
-                v-for="category in categories" 
-                :key="category.id"
-                class="flex items-center gap-2 cursor-pointer"
-              >
-                <input 
-                  type="checkbox"
-                  v-model="selectedCategories"
-                  :value="category.id"
-                  class="accent-primary"
-                >
-                <span>{{ category.name }}</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Filters -->
-          <div class="bg-background-light rounded-lg p-4">
-            <h2 class="text-xl font-bold mb-4">Bộ lọc</h2>
-            <div class="space-y-2">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input 
-                  type="checkbox"
-                  v-model="filters.completed"
-                  class="accent-primary"
-                >
-                <span>Đã hoàn thành</span>
-              </label>
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input 
-                  type="checkbox"
-                  v-model="filters.ongoing"
-                  class="accent-primary"
-                >
-                <span>Đang cập nhật</span>
-              </label>
-            </div>
-          </div>
-        </aside>
-
-        <!-- Manga Grid -->
-        <div class="flex-1">
-          <!-- Section: Mới cập nhật -->
-          <section class="mb-12">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-bold">Mới cập nhật</h2>
-              <router-link 
-                to="/latest"
-                class="text-primary hover:underline"
-              >
-                Xem tất cả
-              </router-link>
-            </div>
-            <div class="grid grid-cols-4 gap-6">
-              <manga-card
-                v-for="manga in latestManga"
-                :key="manga.id"
-                :manga="manga"
-              />
-            </div>
-          </section>
-
-          <!-- Section: Phổ biến -->
-          <section class="mb-12">
-            <div class="flex items-center justify-between mb-6">
-              <h2 class="text-2xl font-bold">Phổ biến</h2>
-              <router-link 
-                to="/popular"
-                class="text-primary hover:underline"
-              >
-                Xem tất cả
-              </router-link>
-            </div>
-            <div class="grid grid-cols-4 gap-6">
-              <manga-card
-                v-for="manga in popularManga"
-                :key="manga.id"
-                :manga="manga"
-              />
-            </div>
-          </section>
+    <!-- Daily Top Manga -->
+    <section class="py-8">
+      <div class="container mx-auto px-4">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+          <i class="fas fa-fire text-red-500 mr-2"></i>
+          Top truyện hôm nay
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <MangaCard v-for="manga in topManga" :key="manga.id" :manga="manga" />
         </div>
       </div>
-    </main>
+    </section>
+
+    <!-- Latest Updates -->
+    <section class="py-8">
+      <div class="container mx-auto px-4">
+        <h2 class="text-2xl font-bold mb-6 flex items-center">
+          <i class="fas fa-clock text-blue-500 mr-2"></i>
+          Mới cập nhật
+        </h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <MangaCard v-for="manga in latestManga" :key="manga.id" :manga="manga" />
+        </div>
+        <div v-if="loading" class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-red-500 border-t-transparent"></div>
+        </div>
+        <div v-if="!loading && hasMore" class="text-center py-6">
+          <button 
+            @click="loadMore" 
+            class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            Xem thêm
+          </button>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Swiper, SwiperSlide } from 'swiper/vue'
-import { Autoplay } from 'swiper/modules'
-import { Pagination } from 'swiper/modules'
-import { Navigation } from 'swiper/modules'
-import MangaCard from '../components/ui/MangaCard.vue'
+import { Autoplay, Pagination, Navigation } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
+import MangaCard from '../components/MangaCard.vue'
 
-// Mock data
-const categories = [
-  { id: 1, name: 'Shonen' },
-  { id: 2, name: 'Shojo' },
-  { id: 3, name: 'Seinen' },
-  { id: 4, name: 'Action' },
-  { id: 5, name: 'Adventure' },
-  { id: 6, name: 'Comedy' },
-  { id: 7, name: 'Drama' },
-  { id: 8, name: 'Fantasy' },
-]
+// Define Manga type
+interface Manga {
+  id: string;
+  title: string;
+  cover: string;
+  status: 'ongoing' | 'completed';
+  latestChapter: number;
+  views: number;
+  rating: number;
+}
 
-const featuredManga = [
+const trendingManga = ref([
   {
-    id: '1',
+    id: 'one-piece',
     title: 'One Piece',
-    description: 'Theo chân cuộc phiêu lưu của Monkey D. Luffy và băng hải tặc Mũ Rơm trong hành trình trở thành Vua Hải Tặc',
-    coverImage: '/manga/one-piece-banner.jpg',
+    cover: 'https://cdn.myanimelist.net/images/manga/2/253146.jpg',
+    description: 'Luffy và đồng đội tiếp tục cuộc hành trình tìm kiếm kho báu vĩ đại nhất thế giới. Đọc ngay tập mới nhất!'
   },
   {
-    id: '2',
-    title: 'Naruto',
-    description: 'Câu chuyện về Naruto Uzumaki, một ninja trẻ tìm kiếm sự công nhận và ước mơ trở thành Hokage',
-    coverImage: '/manga/naruto-banner.jpg',
+    id: 'jujutsu-kaisen',
+    title: 'Jujutsu Kaisen',
+    cover: 'https://cdn.myanimelist.net/images/manga/3/211807.jpg',
+    description: 'Câu chuyện về Yuji Itadori, một học sinh trung học với khả năng thể chất phi thường, vô tình dính líu vào thế giới của Jujutsu.'
   },
-]
-
-const latestManga = [
   {
-    id: '1',
+    id: 'chainsaw-man',
+    title: 'Chainsaw Man',
+    cover: 'https://cdn.myanimelist.net/images/manga/3/216464.jpg',
+    description: 'Denji là một thiếu niên nghèo đang cố trả nợ bằng cách săn quỷ cùng con quỷ Pochita. Sau khi bị phản bội và giết chết, anh hồi sinh với sức mạnh của Chainsaw Devil.'
+  }
+])
+
+const topManga = ref<Manga[]>([
+  {
+    id: 'one-piece',
     title: 'One Piece',
-    coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing' as const,
+    cover: 'https://cdn.myanimelist.net/images/manga/2/253146.jpg',
+    status: 'ongoing',
     latestChapter: 1089,
-    rating: 4.9,
-    views: 1500000,
+    views: 15000000,
+    rating: 4.9
   },
-  // Thêm các manga khác...
-]
-
-const popularManga = [
   {
-    id: '2',
-    title: 'Naruto',
-    coverImage: '/manga/naruto.jpg',
-    status: 'completed' as const,
-    latestChapter: 700,
-    rating: 4.8,
-    views: 2000000,
+    id: 'jujutsu-kaisen',
+    title: 'Jujutsu Kaisen',
+    cover: 'https://cdn.myanimelist.net/images/manga/3/211807.jpg',
+    status: 'ongoing',
+    latestChapter: 235,
+    views: 9800000,
+    rating: 4.8
   },
-  // Thêm các manga khác...
-]
+  {
+    id: 'chainsaw-man',
+    title: 'Chainsaw Man',
+    cover: 'https://cdn.myanimelist.net/images/manga/3/216464.jpg',
+    status: 'ongoing',
+    latestChapter: 154,
+    views: 8500000,
+    rating: 4.7
+  },
+  {
+    id: 'demon-slayer',
+    title: 'Demon Slayer',
+    cover: 'https://cdn.myanimelist.net/images/manga/3/179023.jpg',
+    status: 'completed',
+    latestChapter: 205,
+    views: 12000000,
+    rating: 4.8
+  },
+  {
+    id: 'my-hero-academia',
+    title: 'My Hero Academia',
+    cover: 'https://cdn.myanimelist.net/images/manga/1/209370.jpg',
+    status: 'ongoing',
+    latestChapter: 403,
+    views: 7800000,
+    rating: 4.5
+  },
+  {
+    id: 'attack-on-titan',
+    title: 'Attack on Titan',
+    cover: 'https://cdn.myanimelist.net/images/manga/2/37846.jpg',
+    status: 'completed',
+    latestChapter: 139,
+    views: 11000000,
+    rating: 4.6
+  }
+])
 
-const selectedCategories = ref<number[]>([])
-const filters = ref({
-  completed: false,
-  ongoing: false,
+const latestManga = ref<Manga[]>([])
+const page = ref(1)
+const loading = ref(false)
+const hasMore = ref(true)
+
+const loadMore = async () => {
+  if (loading.value) return
+  
+  loading.value = true
+  try {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // Add more manga to the list
+    latestManga.value.push(...generateMoreManga())
+    page.value++
+    
+    // After page 5, no more data
+    if (page.value >= 5) {
+      hasMore.value = false
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+const generateMoreManga = (): Manga[] => {
+  // Sample manga titles
+  const titles = [
+    'Dragon Ball', 'Naruto', 'Bleach', 'Tokyo Ghoul', 
+    'Death Note', 'Fullmetal Alchemist', 'Hunter x Hunter',
+    'One Punch Man', 'Spy x Family', 'Black Clover',
+    'Boruto', 'Dr. Stone', 'Tower of God', 'Solo Leveling'
+  ]
+  
+  // Sample cover images - using actual manga cover URLs
+  const covers = [
+    'https://cdn.myanimelist.net/images/manga/2/253146.jpg', // One Piece
+    'https://cdn.myanimelist.net/images/manga/3/216464.jpg', // Chainsaw Man
+    'https://cdn.myanimelist.net/images/manga/3/211807.jpg', // Jujutsu Kaisen
+    'https://cdn.myanimelist.net/images/manga/3/179023.jpg', // Demon Slayer
+    'https://cdn.myanimelist.net/images/manga/1/209370.jpg', // My Hero Academia
+    'https://cdn.myanimelist.net/images/manga/2/37846.jpg',  // Attack on Titan
+    'https://cdn.myanimelist.net/images/manga/1/157897.jpg', // Tokyo Ghoul
+    'https://cdn.myanimelist.net/images/manga/1/258213.jpg', // Spy x Family
+    'https://cdn.myanimelist.net/images/manga/2/181125.jpg', // Hunter x Hunter
+    'https://cdn.myanimelist.net/images/manga/3/188896.jpg', // One Punch Man
+    'https://cdn.myanimelist.net/images/manga/2/161476.jpg', // Dragon Ball
+    'https://cdn.myanimelist.net/images/manga/3/216933.jpg', // Solo Leveling
+  ]
+  
+  // Generate data for 12 manga
+  return Array(12).fill(null).map((_, index) => {
+    const titleIndex = Math.floor(Math.random() * titles.length)
+    const coverIndex = Math.floor(Math.random() * covers.length)
+    const isOngoing = Math.random() > 0.3
+    
+    const uniqueId = `manga-${page.value}-${index}`
+    
+    return {
+      id: uniqueId,
+      title: `${titles[titleIndex]} ${page.value > 1 ? page.value : ''}`,
+      cover: covers[coverIndex],
+      status: isOngoing ? 'ongoing' : 'completed',
+      latestChapter: Math.floor(Math.random() * 900) + 100,
+      views: Math.floor(Math.random() * 9000000) + 1000000,
+      rating: Number((4 + Math.random()).toFixed(1))
+    }
+  })
+}
+
+onMounted(() => {
+  loadMore()
 })
-</script> 
+</script>
+
+<style scoped>
+:deep(.swiper-pagination-bullet) {
+  background: white;
+}
+
+:deep(.swiper-button-next),
+:deep(.swiper-button-prev) {
+  color: white;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style> 

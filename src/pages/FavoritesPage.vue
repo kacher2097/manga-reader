@@ -1,224 +1,319 @@
 <template>
-  <div class="pt-header">
-    <div class="max-w-container mx-auto px-4 py-12">
-      <div class="flex items-center justify-between mb-8">
-        <h1 class="text-3xl font-bold">Truyện yêu thích</h1>
+  <div class="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-white mb-2">Yêu thích</h1>
+        <p class="text-gray-400">Những bộ truyện bạn đã đánh dấu yêu thích</p>
+      </div>
+
+      <!-- Filters and Sort -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
         <div class="flex items-center gap-4">
-          <span class="text-gray-400">Sắp xếp theo:</span>
-          <select 
-            v-model="sortBy"
-            class="bg-background-light rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+          <select
+            v-model="filter.status"
+            class="bg-gray-800 text-white rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
           >
-            <option value="latest">Mới nhất</option>
-            <option value="name">Tên truyện</option>
-            <option value="lastRead">Đọc gần đây</option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="ongoing">Đang tiến hành</option>
+            <option value="completed">Đã hoàn thành</option>
+          </select>
+          <select
+            v-model="filter.sort"
+            class="bg-gray-800 text-white rounded-lg px-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          >
+            <option value="newest">Mới nhất</option>
+            <option value="oldest">Cũ nhất</option>
+            <option value="name">Tên A-Z</option>
+            <option value="chapter">Số chapter</option>
           </select>
         </div>
+        <div class="relative">
+          <input
+            v-model="filter.search"
+            type="text"
+            placeholder="Tìm kiếm trong yêu thích..."
+            class="w-full sm:w-64 bg-gray-800 text-white rounded-lg pl-10 pr-4 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+          />
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        </div>
       </div>
 
-      <template v-if="favorites.length > 0">
-        <!-- Collections -->
-        <div class="mb-8">
-          <div class="flex items-center gap-4 mb-6">
-            <button
-              v-for="collection in collections"
-              :key="collection.id"
-              class="px-4 py-2 rounded-full"
-              :class="selectedCollection === collection.id ? 'bg-primary text-white' : 'bg-background-light hover:bg-background'"
-              @click="selectedCollection = collection.id"
-            >
-              {{ collection.name }}
-              <span class="text-sm ml-2">({{ collection.count }})</span>
-            </button>
-            <button
-              class="px-4 py-2 rounded-full bg-background-light hover:bg-background"
-              @click="showCreateCollection = true"
-            >
-              <i class="i-heroicons-plus-20-solid" />
-              <span class="ml-2">Tạo bộ sưu tập</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Manga Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
-          <manga-card
-            v-for="manga in sortedFavorites"
+      <!-- Favorites Content -->
+      <div v-if="!loading && filteredFavorites.length > 0" class="space-y-8">
+        <!-- Favorites Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          <div
+            v-for="manga in filteredFavorites"
             :key="manga.id"
-            :manga="manga"
+            class="relative group"
           >
-            <template #actions>
+            <div class="absolute top-2 right-2 z-10">
               <button 
-                class="btn bg-background-light hover:bg-background w-full flex items-center justify-center gap-2"
-                @click="removeFavorite(manga)"
+                @click.prevent="toggleFavorite(manga)"
+                class="w-8 h-8 flex items-center justify-center bg-gray-800/80 hover:bg-red-500/90 rounded-full transition-all"
               >
-                <i class="i-heroicons-heart-20-solid text-red-500" />
-                Bỏ thích
+                <i class="fas fa-heart text-red-500"></i>
               </button>
-            </template>
-          </manga-card>
-        </div>
-      </template>
-      <template v-else>
-        <div class="text-center py-12">
-          <div class="text-6xl mb-4">💔</div>
-          <h2 class="text-2xl font-bold mb-2">Chưa có truyện yêu thích</h2>
-          <p class="text-gray-400 mb-6">
-            Hãy thêm truyện vào danh sách yêu thích để đọc sau
-          </p>
-          <router-link to="/" class="btn btn-primary">
-            Khám phá truyện
-          </router-link>
-        </div>
-      </template>
-    </div>
-
-    <!-- Create Collection Modal -->
-    <dialog
-      :open="showCreateCollection"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      @close="showCreateCollection = false"
-    >
-      <div class="bg-background-light rounded-lg p-6 w-full max-w-md">
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold">Tạo bộ sưu tập mới</h3>
-          <button
-            class="text-gray-400 hover:text-white"
-            @click="showCreateCollection = false"
-          >
-            <i class="i-heroicons-x-mark-20-solid" />
-          </button>
-        </div>
-        <form @submit.prevent="createCollection">
-          <div class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium mb-2">
-                Tên bộ sưu tập
-              </label>
-              <input
-                v-model="newCollectionName"
-                type="text"
-                required
-                class="input"
-                placeholder="Ví dụ: Đang đọc, Sẽ đọc sau,..."
-              >
             </div>
+            <router-link :to="`/manga/${manga.id}`">
+              <div class="relative aspect-[3/4] rounded-lg overflow-hidden mb-3">
+                <img
+                  :src="manga.cover"
+                  :alt="manga.title"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div class="absolute top-2 left-2">
+                  <span
+                    :class="[
+                      'px-2 py-1 rounded text-xs font-medium',
+                      manga.status === 'ongoing' ? 'bg-green-500' : 'bg-blue-500'
+                    ]"
+                  >
+                    {{ manga.status === 'ongoing' ? 'Đang tiến hành' : 'Hoàn thành' }}
+                  </span>
+                </div>
+                <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                  <div class="flex items-center gap-2 text-sm">
+                    <span class="text-white">Ch.{{ manga.latestChapter }}</span>
+                    <span class="text-gray-400">{{ manga.updatedAt }}</span>
+                  </div>
+                </div>
+              </div>
+              <h3 class="font-medium text-white group-hover:text-red-500 transition-colors duration-300 line-clamp-2">
+                {{ manga.title }}
+              </h3>
+              <div class="flex items-center gap-3 mt-1 text-sm text-gray-400">
+                <div class="flex items-center">
+                  <i class="fas fa-eye mr-1"></i>
+                  <span>{{ formatNumber(manga.views) }}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-star text-yellow-400 mr-1"></i>
+                  <span>{{ manga.rating.toFixed(1) }}</span>
+                </div>
+              </div>
+            </router-link>
           </div>
-          <div class="flex justify-end gap-4 mt-6">
-            <button
-              type="button"
-              class="btn bg-background hover:bg-background-light"
-              @click="showCreateCollection = false"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              class="btn btn-primary"
-              :disabled="loading"
-            >
-              <template v-if="loading">
-                <i class="i-heroicons-arrow-path-20-solid animate-spin" />
-                <span class="ml-2">Đang tạo...</span>
-              </template>
-              <span v-else>Tạo bộ sưu tập</span>
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
-    </dialog>
+
+      <!-- Empty State -->
+      <div 
+        v-if="!loading && filteredFavorites.length === 0" 
+        class="bg-gray-800 rounded-lg p-8 text-center"
+      >
+        <div class="w-20 h-20 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center">
+          <i class="fas fa-heart text-4xl text-gray-600"></i>
+        </div>
+        <h3 class="text-xl font-medium text-white mb-2">Chưa có truyện yêu thích</h3>
+        <p class="text-gray-400 mb-6 max-w-md mx-auto">
+          Hãy thêm những bộ truyện bạn yêu thích để xem cập nhật mới nhất và theo dõi tiến độ của chúng.
+        </p>
+        <router-link 
+          to="/"
+          class="inline-flex items-center px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          <i class="fas fa-compass mr-2"></i>
+          Khám phá truyện
+        </router-link>
+      </div>
+
+      <!-- Filter No Results -->
+      <div
+        v-if="!loading && favorites.length > 0 && filteredFavorites.length === 0"
+        class="text-center py-12"
+      >
+        <i class="fas fa-search text-4xl text-gray-600 mb-4"></i>
+        <h3 class="text-xl font-medium text-white mb-2">Không tìm thấy kết quả</h3>
+        <p class="text-gray-400">
+          Thử tìm kiếm với từ khóa khác hoặc điều chỉnh bộ lọc
+        </p>
+      </div>
+
+      <!-- Loading -->
+      <div
+        v-if="loading"
+        class="flex justify-center items-center py-16"
+      >
+        <div class="animate-spin rounded-full h-8 w-8 border-2 border-red-500 border-t-transparent"></div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import MangaCard from '../components/ui/MangaCard.vue'
+import { ref, computed, onMounted, watch } from 'vue'
 
-// Định nghĩa kiểu MangaStatus
-type MangaStatus = 'ongoing' | 'completed';
-
-// Interface cho đối tượng manga
+// Define Manga type
 interface Manga {
   id: string;
   title: string;
-  coverImage: string;
-  status: MangaStatus;
+  cover: string;
+  status: 'ongoing' | 'completed';
   latestChapter: number;
-  rating: number;
   views: number;
-  addedAt: string;
-  lastRead: string;
+  rating: number;
+  updatedAt: string;
+  dateAdded: Date;
 }
 
-// Mock data
-const collections = [
-  { id: 'all', name: 'Tất cả', count: 42 },
-  { id: 'reading', name: 'Đang đọc', count: 15 },
-  { id: 'completed', name: 'Đã đọc xong', count: 27 },
-]
-
-const favorites = [
-  {
-    id: '1',
-    title: 'One Piece',
-    coverImage: '/manga/one-piece.jpg',
-    status: 'ongoing' as MangaStatus,
-    latestChapter: 1089,
-    rating: 4.9,
-    views: 1500000,
-    addedAt: '2023-12-01',
-    lastRead: '2023-12-15',
-  },
-  // Add more manga...
-]
-
-// State
-const sortBy = ref('latest')
-const selectedCollection = ref('all')
-const showCreateCollection = ref(false)
-const loading = ref(false)
-const newCollectionName = ref('')
-
-// Computed
-const sortedFavorites = computed(() => {
-  let result = [...favorites]
-
-  // Filter by collection
-  if (selectedCollection.value !== 'all') {
-    // Implement collection filtering
-  }
-
-  // Apply sorting
-  switch (sortBy.value) {
-    case 'name':
-      result.sort((a, b) => a.title.localeCompare(b.title))
-      break
-    case 'lastRead':
-      result.sort((a, b) => new Date(b.lastRead).getTime() - new Date(a.lastRead).getTime())
-      break
-    case 'latest':
-    default:
-      result.sort((a, b) => new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime())
-  }
-
-  return result
+// Filter state
+const filter = ref({
+  status: 'all',
+  sort: 'newest',
+  search: ''
 })
 
-// Methods
-const removeFavorite = async (manga: any) => {
-  if (!confirm(`Bạn có chắc muốn bỏ thích truyện "${manga.title}"?`)) return
-  // Implement remove favorite logic
+// Favorites state
+const favorites = ref<Manga[]>([])
+const loading = ref(false)
+
+// Filter favorites
+const filteredFavorites = computed(() => {
+  return favorites.value
+    .filter(manga => {
+      // Filter by status
+      if (filter.value.status !== 'all' && manga.status !== filter.value.status) {
+        return false
+      }
+      
+      // Filter by search
+      if (filter.value.search && !manga.title.toLowerCase().includes(filter.value.search.toLowerCase())) {
+        return false
+      }
+      
+      return true
+    })
+    .sort((a, b) => {
+      // Sort by selected option
+      if (filter.value.sort === 'newest') {
+        return b.dateAdded.getTime() - a.dateAdded.getTime()
+      } else if (filter.value.sort === 'oldest') {
+        return a.dateAdded.getTime() - b.dateAdded.getTime()
+      } else if (filter.value.sort === 'name') {
+        return a.title.localeCompare(b.title)
+      } else if (filter.value.sort === 'chapter') {
+        return b.latestChapter - a.latestChapter
+      }
+      return 0
+    })
+})
+
+// Format number helper
+const formatNumber = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M'
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K'
+  }
+  return num.toString()
 }
 
-const createCollection = async () => {
+// Toggle favorite status
+const toggleFavorite = (manga: Manga) => {
+  // Remove from favorites
+  favorites.value = favorites.value.filter(m => m.id !== manga.id)
+  // In a real app, update this in a persistent store
+  // storeFavorites()
+}
+
+// Load favorites
+const loadFavorites = async () => {
+  loading.value = true
   try {
-    loading.value = true
-    // Implement create collection logic
+    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
-    showCreateCollection.value = false
-    newCollectionName.value = ''
+    
+    // Mock favorites data
+    favorites.value = generateFavoritesData()
+  } catch (error) {
+    console.error('Error loading favorites:', error)
   } finally {
     loading.value = false
   }
 }
-</script> 
+
+// Generate mock favorites data
+const generateFavoritesData = (): Manga[] => {
+  // Sample manga titles
+  const titles = [
+    'One Piece', 'Attack on Titan', 'Jujutsu Kaisen', 'Chainsaw Man',
+    'Hunter x Hunter', 'Spy x Family', 'My Hero Academia', 'Demon Slayer',
+    'Tokyo Ghoul', 'Solo Leveling', 'Blue Lock', 'Oshi no Ko'
+  ]
+  
+  // Sample cover images
+  const covers = [
+    'https://cdn.myanimelist.net/images/manga/2/253146.jpg', // One Piece
+    'https://cdn.myanimelist.net/images/manga/3/216464.jpg', // Chainsaw Man
+    'https://cdn.myanimelist.net/images/manga/3/211807.jpg', // Jujutsu Kaisen
+    'https://cdn.myanimelist.net/images/manga/3/179023.jpg', // Demon Slayer
+    'https://cdn.myanimelist.net/images/manga/1/209370.jpg', // My Hero Academia
+    'https://cdn.myanimelist.net/images/manga/2/37846.jpg',  // Attack on Titan
+    'https://cdn.myanimelist.net/images/manga/1/157897.jpg', // Tokyo Ghoul
+    'https://cdn.myanimelist.net/images/manga/1/258213.jpg', // Spy x Family
+    'https://cdn.myanimelist.net/images/manga/2/181125.jpg', // Hunter x Hunter
+    'https://cdn.myanimelist.net/images/manga/3/188896.jpg', // One Punch Man
+    'https://cdn.myanimelist.net/images/manga/2/161476.jpg', // Dragon Ball
+    'https://cdn.myanimelist.net/images/manga/3/216933.jpg', // Solo Leveling
+  ]
+  
+  // Sample update times
+  const updateTimes = [
+    '5 phút trước', '10 phút trước', '30 phút trước', '1 giờ trước', 
+    '2 giờ trước', '3 giờ trước', '5 giờ trước', '8 giờ trước',
+    '12 giờ trước', 'Hôm qua', '2 ngày trước'
+  ]
+  
+  // Generate a random number of favorites (5-15)
+  const count = Math.floor(Math.random() * 10) + 5
+  
+  // Generate data for the favorites
+  return Array(count).fill(null).map((_, index) => {
+    const titleIndex = Math.floor(Math.random() * titles.length)
+    const coverIndex = Math.floor(Math.random() * covers.length)
+    const timeIndex = Math.floor(Math.random() * updateTimes.length)
+    const isOngoing = Math.random() > 0.3
+    
+    // Generate a date added time in the past month
+    const daysAgo = Math.floor(Math.random() * 30)
+    const dateAdded = new Date()
+    dateAdded.setDate(dateAdded.getDate() - daysAgo)
+    
+    const uniqueId = `manga-fav-${index}`
+    
+    return {
+      id: uniqueId,
+      title: titles[titleIndex],
+      cover: covers[coverIndex],
+      status: isOngoing ? 'ongoing' : 'completed',
+      latestChapter: Math.floor(Math.random() * 900) + 100,
+      views: Math.floor(Math.random() * 9000000) + 1000000,
+      rating: Number((4 + Math.random()).toFixed(1)),
+      updatedAt: updateTimes[timeIndex],
+      dateAdded
+    }
+  })
+}
+
+// Watch for filter changes
+watch([filter], () => {
+  // No need to reload data for filter changes in favorites
+}, { deep: true })
+
+// Initial load
+onMounted(() => {
+  loadFavorites()
+})
+</script>
+
+<style scoped>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+</style> 
