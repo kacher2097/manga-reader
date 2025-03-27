@@ -1,133 +1,143 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import HomePage from '../pages/HomePage.vue'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
-type Manga = {
-  id: string;
-  title: string;
-  coverImage: string;
-  status: 'ongoing' | 'completed'; // Chỉ cho phép hai giá trị này
-  latestChapter: number;
-  rating: number;
-  views: number;
-  addedAt: string;
-  lastRead: string;
-};
+const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    name: 'Home',
+    component: () => import(/* webpackChunkName: "home" */ '../pages/HomePage.vue')
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import(/* webpackChunkName: "auth" */ '../pages/LoginPage.vue')
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import(/* webpackChunkName: "auth" */ '../pages/RegisterPage.vue')
+  },
+  {
+    path: '/manga/:id',
+    name: 'MangaDetail',
+    component: () => import(/* webpackChunkName: "manga" */ '../pages/MangaPage.vue')
+  },
+  {
+    path: '/manga/:id/chapter/:chapter',
+    name: 'ChapterDetail',
+    component: () => import(/* webpackChunkName: "chapter" */ '../pages/ChapterPage.vue')
+  },
+  {
+    path: '/reader/:mangaId/:chapterId',
+    name: 'Reader',
+    component: () => import(/* webpackChunkName: "reader" */ '../pages/ReaderPage.vue')
+  },
+  {
+    path: '/search',
+    name: 'Search',
+    component: () => import(/* webpackChunkName: "search" */ '../pages/SearchPage.vue')
+  },
+  {
+    path: '/categories',
+    name: 'Categories',
+    component: () => import(/* webpackChunkName: "categories" */ '../pages/CategoriesPage.vue')
+  },
+  {
+    path: '/category/:id',
+    name: 'CategoryDetail',
+    component: () => import(/* webpackChunkName: "category" */ '../pages/CategoryPage.vue')
+  },
+  {
+    path: '/latest',
+    name: 'Latest',
+    component: () => import(/* webpackChunkName: "latest" */ '../pages/LatestPage.vue')
+  },
+  {
+    path: '/popular',
+    name: 'Popular',
+    component: () => import(/* webpackChunkName: "popular" */ '../pages/PopularPage.vue')
+  },
+  {
+    path: '/continue',
+    name: 'Continue',
+    component: () => import(/* webpackChunkName: "continue" */ '../pages/ContinuePage.vue')
+  },
+  {
+    path: '/following',
+    name: 'Following',
+    component: () => import(/* webpackChunkName: "following" */ '../pages/FollowingPage.vue')
+  },
+  {
+    path: '/history',
+    name: 'History',
+    component: () => import(/* webpackChunkName: "history" */ '../pages/HistoryPage.vue')
+  },
+  {
+    path: '/favorites',
+    name: 'Favorites',
+    component: () => import(/* webpackChunkName: "favorites" */ '../pages/FavoritesPage.vue')
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import(/* webpackChunkName: "profile" */ '../pages/ProfilePage.vue')
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import(/* webpackChunkName: "settings" */ '../pages/SettingsPage.vue')
+  },
+  {
+    path: '/notifications',
+    name: 'Notifications',
+    component: () => import(/* webpackChunkName: "notifications" */ '../pages/NotificationsPage.vue')
+  },
+  // {
+  //   path: '/about',
+  //   name: 'About',
+  //   component: () => import(/* webpackChunkName: "about" */ '../pages/AboutPage.vue')
+  // },
+  {
+    path: '/privacy',
+    name: 'Privacy',
+    component: () => import(/* webpackChunkName: "legal" */ '../pages/PrivacyPage.vue')
+  },
+  {
+    path: '/terms',
+    name: 'Terms',
+    component: () => import(/* webpackChunkName: "legal" */ '../pages/TermsPage.vue')
+  },
+  // {
+  //   path: '/contact',
+  //   name: 'Contact',
+  //   component: () => import(/* webpackChunkName: "contact" */ '../pages/ContactPage.vue')
+  // },
+  // {
+  //   path: '/dmca',
+  //   name: 'DMCA',
+  //   component: () => import(/* webpackChunkName: "legal" */ '../pages/DmcaPage.vue')
+  // },
+  // {
+  //   path: '/completed',
+  //   name: 'Completed',
+  //   component: () => import(/* webpackChunkName: "completed" */ '../pages/CompletedPage.vue')
+  // },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import(/* webpackChunkName: "error" */ '../pages/NotFoundPage.vue')
+  }
+]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: HomePage
-    },
-    {
-      path: '/manga/:id',
-      name: 'manga',
-      component: () => import('../pages/MangaPage.vue')
-    },
-    {
-      path: '/manga/:id/chapter/:chapter',
-      name: 'chapter',
-      component: () => import('../pages/ChapterPage.vue')
-    },
-    {
-      path: '/reader/:mangaId/:chapterId',
-      name: 'reader',
-      component: () => import('../pages/ReaderPage.vue')
-    },
-    {
-      path: '/continue',
-      name: 'continue',
-      component: () => import('../pages/ContinuePage.vue')
-    },
-    {
-      path: '/latest',
-      name: 'latest',
-      component: () => import('../pages/LatestPage.vue')
-    },
-    {
-      path: '/popular',
-      name: 'popular',
-      component: () => import('../pages/PopularPage.vue')
-    },
-    {
-      path: '/categories',
-      name: 'categories',
-      component: () => import('../pages/CategoriesPage.vue')
-    },
-    {
-      path: '/category/:id',
-      name: 'category',
-      component: () => import('../pages/CategoryPage.vue')
-    },
-    {
-      path: '/search',
-      name: 'search',
-      component: () => import('../pages/SearchPage.vue'),
-    },
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('../pages/LoginPage.vue'),
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('../pages/RegisterPage.vue'),
-    },
-    {
-      path: '/profile',
-      name: 'profile',
-      component: () => import('../pages/ProfilePage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/favorites',
-      name: 'favorites',
-      component: () => import('../pages/FavoritesPage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/following',
-      name: 'following',
-      component: () => import('../pages/FollowingPage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/history',
-      name: 'history',
-      component: () => import('../pages/HistoryPage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/notifications',
-      name: 'notifications',
-      component: () => import('../pages/NotificationsPage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('../pages/SettingsPage.vue'),
-      meta: { requiresAuth: true },
-    },
-    {
-      path: '/terms',
-      name: 'terms',
-      component: () => import('../pages/TermsPage.vue'),
-    },
-    {
-      path: '/privacy',
-      name: 'privacy',
-      component: () => import('../pages/PrivacyPage.vue'),
-    },
-    {
-      path: '/:pathMatch(.*)*',
-      name: 'not-found',
-      component: () => import('../pages/NotFoundPage.vue'),
-    },
-  ]
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  }
 })
 
 // Navigation guards

@@ -1,99 +1,93 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Navigation -->
-    <TheNavigation />
-
-    <!-- Main Content -->
-    <main>
-      <router-view></router-view>
+  <div class="min-h-screen bg-gray-900 text-white">
+    <TheHeader />
+    <main class="container mx-auto px-4 py-6 mb-16 lg:mb-0">
+      <router-view />
     </main>
-
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-gray-400 py-8">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <!-- About -->
-          <div>
-            <h3 class="text-white text-lg font-bold mb-4">Về MangaHub</h3>
-            <p class="text-sm">
-              Nền tảng đọc manga trực tuyến hàng đầu Việt Nam với kho truyện đa dạng và cập nhật nhanh nhất.
-            </p>
-          </div>
-
-          <!-- Quick Links -->
-          <div>
-            <h3 class="text-white text-lg font-bold mb-4">Liên kết</h3>
-            <ul class="space-y-2 text-sm">
-              <li>
-                <router-link to="/terms" class="hover:text-red-500 transition-colors">
-                  Điều khoản sử dụng
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/privacy" class="hover:text-red-500 transition-colors">
-                  Chính sách bảo mật
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/dmca" class="hover:text-red-500 transition-colors">
-                  DMCA
-                </router-link>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Support -->
-          <div>
-            <h3 class="text-white text-lg font-bold mb-4">Hỗ trợ</h3>
-            <ul class="space-y-2 text-sm">
-              <li>
-                <router-link to="/faq" class="hover:text-red-500 transition-colors">
-                  FAQ
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/contact" class="hover:text-red-500 transition-colors">
-                  Liên hệ
-                </router-link>
-              </li>
-              <li>
-                <router-link to="/report" class="hover:text-red-500 transition-colors">
-                  Báo lỗi
-                </router-link>
-              </li>
-            </ul>
-          </div>
-
-          <!-- Community -->
-          <div>
-            <h3 class="text-white text-lg font-bold mb-4">Cộng đồng</h3>
-            <div class="flex space-x-4">
-              <a href="#" class="hover:text-red-500 transition-colors">
-                <i class="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" class="hover:text-red-500 transition-colors">
-                <i class="fab fa-discord"></i>
-              </a>
-              <a href="#" class="hover:text-red-500 transition-colors">
-                <i class="fab fa-twitter"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div class="border-t border-gray-700 mt-8 pt-8 text-center text-sm">
-          © 2024 MangaHub. All rights reserved.
-        </div>
-      </div>
-    </footer>
+    <TheMobileNav 
+      :is-logged-in="isLoggedIn"
+      :user-avatar="userAvatar"
+      :user-name="userName"
+      :user-email="userEmail"
+      :categories="categories"
+      @logout="handleLogout"
+    />
+    <TheFooter />
+    <ScrollToTop />
   </div>
 </template>
 
 <script setup lang="ts">
-import TheNavigation from './components/TheNavigation.vue'
+import { ref } from 'vue'
+import TheHeader from './components/TheHeader.vue'
+import TheFooter from './components/TheFooter.vue'
+import TheMobileNav from './components/TheMobileNav.vue'
+import ScrollToTop from './components/ScrollToTop.vue'
+
+// Mock user data
+const isLoggedIn = ref(false)
+const userAvatar = ref('https://i.pravatar.cc/300')
+const userName = ref('John Doe')
+const userEmail = ref('user@example.com')
+
+// Categories data
+const categories = ref([
+  { id: 'action', name: 'Action', count: 1240 },
+  { id: 'adventure', name: 'Adventure', count: 980 },
+  { id: 'comedy', name: 'Comedy', count: 1560 },
+  { id: 'drama', name: 'Drama', count: 1120 },
+  { id: 'fantasy', name: 'Fantasy', count: 1340 },
+  { id: 'horror', name: 'Horror', count: 420 },
+  { id: 'romance', name: 'Romance', count: 1670 },
+  { id: 'sci-fi', name: 'Sci-Fi', count: 620 },
+  { id: 'slice-of-life', name: 'Slice of Life', count: 920 },
+  { id: 'sports', name: 'Sports', count: 480 },
+  { id: 'supernatural', name: 'Supernatural', count: 1050 },
+  { id: 'mystery', name: 'Mystery', count: 560 },
+])
+
+// Logout function
+const handleLogout = (): void => {
+  isLoggedIn.value = false
+  // Handle logout logic
+}
 </script>
 
 <style>
 /* Font Awesome */
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css');
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a202c;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Global transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Focus styles */
+*:focus {
+  outline: 2px solid #f56565;
+  outline-offset: 2px;
+}
 </style>
