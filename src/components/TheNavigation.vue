@@ -230,26 +230,65 @@
             <!-- Categories Dropdown -->
             <div 
               v-if="showCategories"
-              class="absolute top-full left-0 mt-1 w-64 bg-gray-800 rounded-lg shadow-lg overflow-hidden z-50"
+              class="absolute top-full left-0 mt-1 w-[800px] bg-gray-800 rounded-lg shadow-xl overflow-hidden z-50"
             >
-              <div class="p-2 border-b border-gray-700">
-                <router-link
-                  to="/categories"
-                  class="block p-2 text-white hover:text-red-500 hover:bg-gray-700 rounded transition-colors"
-                >
-                  <i class="fas fa-th-large mr-2"></i>
-                  Xem tất cả thể loại
-                </router-link>
+              <div class="p-6 border-b border-gray-700">
+                <div class="flex items-center justify-between">
+                  <h3 class="text-xl font-semibold text-white">Thể loại</h3>
+                  <router-link
+                    to="/categories"
+                    class="text-red-500 hover:text-red-400 text-sm font-medium"
+                  >
+                    Xem tất cả
+                  </router-link>
+                </div>
+                <div class="mt-4 relative">
+                  <input
+                    v-model="categorySearch"
+                    type="text"
+                    placeholder="Tìm thể loại..."
+                    class="w-full px-4 py-3 bg-gray-900 text-white rounded-lg border border-gray-700 focus:outline-none focus:border-red-500"
+                  />
+                  <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
               </div>
-              <div class="grid grid-cols-2 gap-2 p-4">
-                <router-link
-                  v-for="category in categories"
-                  :key="category.id"
-                  :to="`/category/${category.id}`"
-                  class="text-white hover:text-red-500 transition-colors"
-                >
-                  {{ category.name }}
-                </router-link>
+              <div class="p-6 max-h-[500px] overflow-y-auto">
+                <div class="grid grid-cols-3 gap-6">
+                  <router-link
+                    v-for="category in filteredCategories"
+                    :key="category.id"
+                    :to="`/category/${category.id}`"
+                    class="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-700 transition-colors group"
+                    @click="showCategories = false"
+                  >
+                    <span 
+                      :class="[
+                        'w-4 h-4 rounded-full',
+                        getCategoryColor(category.id)
+                      ]"
+                    ></span>
+                    <div>
+                      <span class="text-white text-lg group-hover:text-red-500 transition-colors">{{ category.name }}</span>
+                      <span class="text-gray-400 text-sm ml-2">({{ category.count }})</span>
+                    </div>
+                  </router-link>
+                </div>
+              </div>
+              <div class="p-6 bg-gray-900/50 border-t border-gray-700">
+                <div class="text-sm text-gray-400">
+                  Thể loại phổ biến:
+                  <div class="mt-3 flex flex-wrap gap-3">
+                    <router-link
+                      v-for="category in topCategories.slice(0, 5)"
+                      :key="category.id"
+                      :to="`/category/${category.id}`"
+                      class="px-4 py-2 bg-gray-700 text-white rounded-full hover:bg-red-500 transition-colors text-sm"
+                      @click="showCategories = false"
+                    >
+                      {{ category.name }}
+                    </router-link>
+                  </div>
+                </div>
               </div>
             </div>
           </li>
@@ -698,9 +737,14 @@ const scrollToTop = (): void => {
   })
 }
 
-// Check scroll position to show/hide scroll to top button
+// Check scroll position to show/hide scroll to top button and close dropdowns
 const checkScroll = (): void => {
   showScrollTop.value = window.scrollY > 500
+  // Close all dropdowns when scrolling
+  showCategories.value = false
+  showUserMenu.value = false
+  showNotifications.value = false
+  showSearchResults.value = false
 }
 
 // Click outside to close dropdowns

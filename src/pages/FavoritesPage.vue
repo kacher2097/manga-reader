@@ -46,54 +46,63 @@
           <div
             v-for="manga in filteredFavorites"
             :key="manga.id"
-            class="relative group"
+            class="bg-gray-800 rounded-lg overflow-hidden transition-transform duration-300 hover:translate-y-[-4px] hover:shadow-xl"
           >
-            <div class="absolute top-2 right-2 z-10">
-              <button 
-                @click.prevent="toggleFavorite(manga)"
-                class="w-8 h-8 flex items-center justify-center bg-gray-800/80 hover:bg-red-500/90 rounded-full transition-all"
-              >
-                <i class="fas fa-heart text-red-500"></i>
-              </button>
-            </div>
-            <router-link :to="`/manga/${manga.id}`">
-              <div class="relative aspect-[3/4] rounded-lg overflow-hidden mb-3">
+            <div class="relative">
+              <!-- Cover Image Container -->
+              <div class="relative aspect-[3/4] overflow-hidden">
                 <img
                   :src="manga.cover"
                   :alt="manga.title"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                 />
+                <!-- Status Badge -->
                 <div class="absolute top-2 left-2">
                   <span
                     :class="[
-                      'px-2 py-1 rounded text-xs font-medium',
-                      manga.status === 'ongoing' ? 'bg-green-500' : 'bg-blue-500'
+                      'px-2 py-1 rounded-full text-xs font-medium',
+                      manga.status === 'ongoing' ? 'bg-green-500/90' : 'bg-blue-500/90'
                     ]"
                   >
                     {{ manga.status === 'ongoing' ? 'Đang tiến hành' : 'Hoàn thành' }}
                   </span>
                 </div>
-                <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                  <div class="flex items-center gap-2 text-sm">
-                    <span class="text-white">Ch.{{ manga.latestChapter }}</span>
-                    <span class="text-gray-400">{{ manga.updatedAt }}</span>
+                <!-- Favorite Button -->
+                <button 
+                  @click.prevent="toggleFavorite(manga)"
+                  class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-gray-900/80 hover:bg-red-500/90 rounded-full transition-all"
+                >
+                  <i class="fas fa-heart text-red-500"></i>
+                </button>
+                <!-- Chapter Info -->
+                <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-gray-900/90 via-gray-900/60 to-transparent">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-white font-medium">Ch.{{ manga.latestChapter }}</span>
+                    <span class="text-gray-300 text-xs">{{ manga.updatedAt }}</span>
                   </div>
                 </div>
               </div>
-              <h3 class="font-medium text-white group-hover:text-red-500 transition-colors duration-300 line-clamp-2">
-                {{ manga.title }}
-              </h3>
-              <div class="flex items-center gap-3 mt-1 text-sm text-gray-400">
-                <div class="flex items-center">
-                  <i class="fas fa-eye mr-1"></i>
-                  <span>{{ formatNumber(manga.views) }}</span>
+            </div>
+            <!-- Manga Info -->
+            <div class="p-3">
+              <router-link :to="`/manga/${manga.id}`" class="block">
+                <h3 class="font-medium text-white hover:text-red-500 transition-colors duration-300 line-clamp-2 mb-2">
+                  {{ manga.title }}
+                </h3>
+                <div class="flex items-center justify-between text-sm">
+                  <div class="flex items-center gap-2">
+                    <div class="flex items-center text-gray-400">
+                      <i class="fas fa-eye mr-1"></i>
+                      <span>{{ formatNumber(manga.views) }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center text-yellow-400">
+                    <i class="fas fa-star mr-1"></i>
+                    <span>{{ manga.rating.toFixed(1) }}</span>
+                  </div>
                 </div>
-                <div class="flex items-center">
-                  <i class="fas fa-star text-yellow-400 mr-1"></i>
-                  <span>{{ manga.rating.toFixed(1) }}</span>
-                </div>
-              </div>
-            </router-link>
+              </router-link>
+            </div>
           </div>
         </div>
       </div>

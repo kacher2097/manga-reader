@@ -1,154 +1,92 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 
-const routes: Array<RouteRecordRaw> = [
+const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
-    component: () => import(/* webpackChunkName: "home" */ '../pages/HomePage.vue')
-  },
-  {
-    path: '/login',
-    name: 'Login',
-    component: () => import(/* webpackChunkName: "auth" */ '../pages/LoginPage.vue')
-  },
-  {
-    path: '/register',
-    name: 'Register',
-    component: () => import(/* webpackChunkName: "auth" */ '../pages/RegisterPage.vue')
+    component: () => import('../pages/HomePage.vue')
   },
   {
     path: '/manga/:id',
     name: 'MangaDetail',
-    component: () => import(/* webpackChunkName: "manga" */ '../pages/MangaPage.vue')
+    component: () => import('../pages/MangaDetailPage.vue')
   },
   {
     path: '/manga/:id/chapter/:chapter',
     name: 'ChapterDetail',
-    component: () => import(/* webpackChunkName: "chapter" */ '../pages/ChapterPage.vue')
+    component: () => import('../pages/ChapterPage.vue')
   },
   {
-    path: '/reader/:mangaId/:chapterId',
-    name: 'Reader',
-    component: () => import(/* webpackChunkName: "reader" */ '../pages/ReaderPage.vue')
+    path: '/login',
+    name: 'Login',
+    component: () => import('../pages/LoginPage.vue'),
+    meta: { requiresGuest: true }
   },
   {
-    path: '/search',
-    name: 'Search',
-    component: () => import(/* webpackChunkName: "search" */ '../pages/SearchPage.vue')
-  },
-  {
-    path: '/categories',
-    name: 'Categories',
-    component: () => import(/* webpackChunkName: "categories" */ '../pages/CategoriesPage.vue')
-  },
-  {
-    path: '/category/:id',
-    name: 'CategoryDetail',
-    component: () => import(/* webpackChunkName: "category" */ '../pages/CategoryPage.vue')
-  },
-  {
-    path: '/latest',
-    name: 'Latest',
-    component: () => import(/* webpackChunkName: "latest" */ '../pages/LatestPage.vue')
-  },
-  {
-    path: '/popular',
-    name: 'Popular',
-    component: () => import(/* webpackChunkName: "popular" */ '../pages/PopularPage.vue')
-  },
-  {
-    path: '/continue',
-    name: 'Continue',
-    component: () => import(/* webpackChunkName: "continue" */ '../pages/ContinuePage.vue')
-  },
-  {
-    path: '/following',
-    name: 'Following',
-    component: () => import(/* webpackChunkName: "following" */ '../pages/FollowingPage.vue')
-  },
-  {
-    path: '/history',
-    name: 'History',
-    component: () => import(/* webpackChunkName: "history" */ '../pages/HistoryPage.vue')
-  },
-  {
-    path: '/favorites',
-    name: 'Favorites',
-    component: () => import(/* webpackChunkName: "favorites" */ '../pages/FavoritesPage.vue')
+    path: '/register',
+    name: 'Register',
+    component: () => import('../pages/RegisterPage.vue'),
+    meta: { requiresGuest: true }
   },
   {
     path: '/profile',
     name: 'Profile',
-    component: () => import(/* webpackChunkName: "profile" */ '../pages/ProfilePage.vue')
+    component: () => import('../pages/ProfilePage.vue')
   },
-  {
-    path: '/settings',
-    name: 'Settings',
-    component: () => import(/* webpackChunkName: "settings" */ '../pages/SettingsPage.vue')
-  },
+  // {
+  //   path: '/bookmarks',
+  //   name: 'Bookmarks',
+  //   component: () => import('../pages/BookmarksPage.vue')
+  // },
   {
     path: '/notifications',
     name: 'Notifications',
-    component: () => import(/* webpackChunkName: "notifications" */ '../pages/NotificationsPage.vue')
+    component: () => import('../pages/NotificationsPage.vue')
   },
-  // {
-  //   path: '/about',
-  //   name: 'About',
-  //   component: () => import(/* webpackChunkName: "about" */ '../pages/AboutPage.vue')
-  // },
   {
     path: '/privacy',
     name: 'Privacy',
-    component: () => import(/* webpackChunkName: "legal" */ '../pages/PrivacyPage.vue')
+    component: () => import('../pages/PrivacyPage.vue')
   },
   {
     path: '/terms',
     name: 'Terms',
-    component: () => import(/* webpackChunkName: "legal" */ '../pages/TermsPage.vue')
+    component: () => import('../pages/TermsPage.vue')
   },
-  // {
-  //   path: '/contact',
-  //   name: 'Contact',
-  //   component: () => import(/* webpackChunkName: "contact" */ '../pages/ContactPage.vue')
-  // },
-  // {
-  //   path: '/dmca',
-  //   name: 'DMCA',
-  //   component: () => import(/* webpackChunkName: "legal" */ '../pages/DmcaPage.vue')
-  // },
-  // {
-  //   path: '/completed',
-  //   name: 'Completed',
-  //   component: () => import(/* webpackChunkName: "completed" */ '../pages/CompletedPage.vue')
-  // },
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import(/* webpackChunkName: "error" */ '../pages/NotFoundPage.vue')
+    component: () => import('../pages/NotFoundPage.vue')
+  },
+  // Admin routes
+  {
+    path: '/admin',
+    component: () => import('../layouts/AdminLayout.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: '',
+        name: 'admin-dashboard',
+        component: () => import('../modules/admin/pages/DashboardPage.vue')
+      },
+      {
+        path: 'manga',
+        name: 'admin-manga',
+        component: () => import('../modules/admin/pages/MangaListPage.vue')
+      },
+      {
+        path: 'manga/:id/chapters',
+        name: 'admin-chapters',
+        component: () => import('../modules/admin/pages/ChapterListPage.vue')
+      }
+    ]
   }
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition
-    } else {
-      return { top: 0 }
-    }
-  }
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
 })
 
-// Navigation guards
-router.beforeEach((to, from, next) => {
-  const isAuthenticated = false // Replace with your auth logic
-  
-  if (to.meta.requiresAuth && !isAuthenticated) {
-    next({ name: 'login', query: { redirect: to.fullPath } })
-  } else {
-    next()
-  }
-})
-
-export default router 
+export default router

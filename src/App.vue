@@ -2,7 +2,10 @@
   <div class="min-h-screen bg-gray-900 text-white">
     <TheHeader />
     <main class="container mx-auto px-4 py-6 mb-16 lg:mb-0">
-      <router-view />
+      <router-view v-if="isReady" />
+      <div v-else class="loading">
+        <span>Đang tải...</span>
+      </div>
     </main>
     <TheMobileNav 
       :is-logged-in="isLoggedIn"
@@ -18,11 +21,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import TheHeader from './components/TheHeader.vue'
 import TheFooter from './components/TheFooter.vue'
 import TheMobileNav from './components/TheMobileNav.vue'
 import ScrollToTop from './components/ScrollToTop.vue'
+import { AuthService } from './services/auth.service'
 
 // Mock user data
 const isLoggedIn = ref(false)
@@ -45,6 +49,21 @@ const categories = ref([
   { id: 'supernatural', name: 'Supernatural', count: 1050 },
   { id: 'mystery', name: 'Mystery', count: 560 },
 ])
+
+const isReady = ref(false)
+
+onMounted(async () => {
+  // Khôi phục trạng thái authentication từ localStorage
+  const token = AuthService.getToken()
+  if (token) {
+    try {
+      await AuthService.getCurrentUser()
+    } catch (error) {
+      AuthService.logout()
+    }
+  }
+  isReady.value = true
+})
 
 // Logout function
 const handleLogout = (): void => {
@@ -89,5 +108,13 @@ const handleLogout = (): void => {
 *:focus {
   outline: 2px solid #f56565;
   outline-offset: 2px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
 }
 </style>
