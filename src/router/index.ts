@@ -2,10 +2,13 @@ import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { AuthService } from '../services/auth.service'
 
+const authService = AuthService.getInstance();
+
 // Route cho chuyển hướng sau khi đăng nhập
 function redirectAfterLogin(to: any) {
+  const authService = AuthService.getInstance();
   const redirectPath = to.query.redirect
-  const isAdmin = AuthService.isAdmin()
+  const isAdmin = authService.isAdmin()
   
   if (redirectPath) {
     return redirectPath
@@ -41,7 +44,7 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresGuest: true },
     // Thêm afterAuth hook để chuyển hướng sau khi đăng nhập
     beforeEnter: (to, from, next) => {
-      if (AuthService.isAuthenticated()) {
+      if (AuthService.getInstance().isAuthenticated()) {
         next(redirectAfterLogin(to))
       } else {
         next()
@@ -55,7 +58,7 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresGuest: true },
     // Thêm afterAuth hook để chuyển hướng sau khi đăng ký
     beforeEnter: (to, from, next) => {
-      if (AuthService.isAuthenticated()) {
+      if (AuthService.getInstance().isAuthenticated()) {
         next(redirectAfterLogin(to))
       } else {
         next()
@@ -188,23 +191,72 @@ const router = createRouter({
   routes
 })
 
-// Thêm hook sau khi đăng nhập
-export async function handlePostLogin(router: any) {
-  try {
-    // Lấy thông tin người dùng hiện tại
-    const user = await AuthService.getCurrentUser()
+// // Thêm hook sau khi đăng nhập
+// export async function handlePostLogin(router: any) {
+//   try {
+//     // Lấy thông tin người dùng hiện tại
+//     const user = await authService.getCurrentUser;
     
-    // Nếu là admin, chuyển hướng đến trang admin
-    if (user?.role === 'ADMIN') {
-      router.push('/admin')
-    } else {
-      router.push('/')
+//     // Nếu là admin, chuyển hướng đến trang admin
+//     if (user?.role === 'ADMIN') {
+//       router.push('/admin')
+//     } else {
+//       router.push('/')
+//     }
+//   } catch (error) {
+//     console.error('Lỗi xử lý sau đăng nhập:', error)
+//     // Trong trường hợp lỗi, chuyển hướng đến trang chủ
+//     router.push('/')
+//   }
+// }
+
+router.beforeEach(async (to, from, next) => {
+  // Đảm bảo chúng ta có một instance đã khởi tạo
+  const authInstance = AuthService.getInstance();
+  
+  // Cố gắng khởi tạo dữ liệu từ localStorage nếu chưa được xác thực
+  try {
+    if (!authInstance.isAuthenticated()) {
+      await authInstance.initializeFromStorage();
     }
+
+    // Sử dụng phương thức, không phải thuộc tính
+    const isAuthenticated = authInstance.isAuthenticated();
+    const isAdmin = authInstance.isAdmin();
+
+    // Nếu user đã đăng nhập và là admin, và đang cố truy cập trang home hoặc login
+    if (isAuthenticated && isAdmin && (to.path === '/' || to.path === '/login' || to.path === '/register')) {
+      return next('/admin');
+    }
+
+    // Kiểm tra quyền truy cập route
+    if (to.meta.requiresAuth && !isAuthenticated) {
+      return next({ name: 'Login', query: { redirect: to.fullPath } });
+    } else if (to.meta.requiresAdmin && !isAdmin) {
+      return next('/');
+    } else if (to.meta.requiresGuest && isAuthenticated) {
+      return next(isAdmin ? '/admin' : '/');
+    }
+
+    return next();
   } catch (error) {
-    console.error('Lỗi xử lý sau đăng nhập:', error)
-    // Trong trường hợp lỗi, chuyển hướng đến trang chủ
-    router.push('/')
+    console.error('Error in router guard:', error);
+    // Nếu có lỗi, cho phép tiếp tục
+    return next();
   }
-}
+});
+
+// function proceed(to: any, next: any): void {
+//   const isAuthenticated: boolean = store.getters.isAuthenticated;
+//   const isAdmin: boolean = store.getters.isAdmin;
+
+//   if (to.meta.requiresAuth && !isAuthenticated) {
+//     next('/login');
+//   } else if (to.meta.requiresAdmin && !isAdmin) {
+//     next('/user');
+//   } else {
+//     next();
+//   }
+// }
 
 export default router

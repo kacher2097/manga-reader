@@ -1,348 +1,434 @@
 <template>
-  <div class="min-h-screen bg-gray-900">
-    <!-- Navigation Bar -->
-    <nav 
-      class="fixed top-0 left-0 right-0 bg-gray-800/90 backdrop-blur-sm shadow-lg z-50 transition-transform duration-300"
-      :class="{ '-translate-y-full': hideNav }"
-      @mouseenter="hideNav = false"
-    >
-      <div class="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+  <div class="min-h-screen bg-gray-900 py-8">
+    <div class="container mx-auto px-4">
+      <!-- Chapter Navigation -->
+      <div class="flex items-center justify-between mb-6 bg-gray-800 rounded-lg p-4">
+        <div class="flex items-center space-x-4">
           <router-link 
             :to="`/manga/${mangaId}`"
-            class="text-white hover:text-primary transition-colors"
+            class="text-white hover:text-red-500 transition-colors"
           >
-            <i class="fas fa-arrow-left"></i>
+            <i class="fas fa-arrow-left mr-2"></i>
+            Quay lại
           </router-link>
-          <h1 class="text-white font-medium truncate">
-            {{ manga?.title }} - Chương {{ chapterNumber }}
-          </h1>
+          <div>
+            <h1 class="text-white text-xl font-bold">{{ mangaTitle }}</h1>
+            <p class="text-gray-400 text-sm">{{ chapterTitle }}</p>
+          </div>
         </div>
-
-        <div class="flex items-center gap-4">
+        <div class="flex items-center space-x-4">
           <button 
+            @click="prevChapter"
             :disabled="!hasPrevChapter"
-            @click="navigateChapter(-1)"
-            class="text-white hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :title="hasPrevChapter ? 'Chương trước' : 'Không có chương trước'"
+            :class="[
+              'px-4 py-2 rounded transition-colors',
+              hasPrevChapter 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+            ]"
           >
-            <i class="fas fa-chevron-left"></i>
+            <i class="fas fa-chevron-left mr-2"></i>
+            Chapter trước
           </button>
-          
           <select 
-            v-model="chapterNumber" 
-            @change="onChapterChange"
-            class="bg-gray-700 text-white rounded px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary w-32"
+            v-model="currentChapter"
+            @change="changeChapter"
+            class="bg-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
           >
             <option 
-              v-for="chapter in chapters" 
+              v-for="chapter in chapters"
               :key="chapter.id"
               :value="chapter.number"
             >
-              Chương {{ chapter.number }}
+              Chapter {{ chapter.number }} - {{ chapter.title }}
             </option>
           </select>
-
           <button 
+            @click="nextChapter"
             :disabled="!hasNextChapter"
-            @click="navigateChapter(1)"
-            class="text-white hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            :title="hasNextChapter ? 'Chương sau' : 'Không có chương sau'"
+            :class="[
+              'px-4 py-2 rounded transition-colors',
+              hasNextChapter 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+            ]"
           >
-            <i class="fas fa-chevron-right"></i>
-          </button>
-
-          <div class="h-6 border-l border-gray-700"></div>
-
-          <button
-            @click="toggleReadingMode"
-            class="text-white hover:text-primary transition-colors"
-            :title="isVerticalMode ? 'Chế độ đọc ngang' : 'Chế độ đọc dọc'"
-          >
-            <i :class="['fas', isVerticalMode ? 'fa-arrows-alt-v' : 'fa-arrows-alt-h']"></i>
-          </button>
-
-          <button
-            @click="toggleSettings"
-            class="text-white hover:text-primary transition-colors"
-            title="Cài đặt"
-          >
-            <i class="fas fa-cog"></i>
+            Chapter sau
+            <i class="fas fa-chevron-right ml-2"></i>
           </button>
         </div>
       </div>
-    </nav>
 
-    <!-- Chapter Content -->
-    <div 
-      class="min-h-screen pt-16"
-      @mousemove="onMouseMove"
-    >
-      <div v-if="loading" class="flex justify-center py-8">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <!-- Error Message -->
+      <div v-if="error" class="mb-6 bg-red-500 text-white p-4 rounded-lg">
+        {{ error }}
       </div>
-      
-      <div v-else-if="error" class="text-red-500 text-center py-8">
-        <i class="fas fa-exclamation-circle text-4xl mb-4"></i>
-        <p>{{ error }}</p>
+
+      <!-- Reading Settings -->
+      <div class="mb-6 bg-gray-800 rounded-lg p-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-2">
+              <span class="text-white">Chế độ đọc:</span>
+              <select 
+                v-model="readingMode"
+                class="bg-gray-700 text-white px-3 py-1.5 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="vertical">Cuộn dọc</option>
+                <option value="horizontal">Cuộn ngang</option>
+                <option value="single">Từng trang</option>
+              </select>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-white">Chiều rộng:</span>
+              <select 
+                v-model="imageWidth"
+                class="bg-gray-700 text-white px-3 py-1.5 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              >
+                <option value="auto">Tự động</option>
+                <option value="800">800px</option>
+                <option value="1000">1000px</option>
+                <option value="1200">1200px</option>
+                <option value="full">Toàn màn hình</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex items-center space-x-4">
+            <button 
+              @click="toggleFullscreen"
+              class="text-white hover:text-red-500 transition-colors"
+            >
+              <i :class="['fas', isFullscreen ? 'fa-compress' : 'fa-expand']"></i>
+            </button>
+          </div>
+        </div>
       </div>
-      
+
+      <!-- Chapter Content -->
       <div 
-        v-else 
-        class="container mx-auto px-4"
-        :class="{ 'space-y-4': !isVerticalMode }"
+        :class="[
+          'chapter-content',
+          `mode-${readingMode}`,
+          imageWidth === 'full' ? 'w-full' : 'max-w-screen-xl mx-auto'
+        ]"
       >
-        <div 
-          v-for="(page, index) in currentChapter?.pages" 
-          :key="index"
-          :class="[
-            'mx-auto transition-transform duration-300',
-            { 'max-w-4xl hover:scale-105': !isVerticalMode }
-          ]"
-        >
-          <img
-            :src="page"
-            :alt="`Trang ${index + 1}`"
-            class="w-full h-auto cursor-zoom-in"
-            loading="lazy"
-            @click="openFullscreen(index)"
-          />
+        <div v-if="loading" class="flex justify-center items-center min-h-[400px]">
+          <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-red-500"></div>
         </div>
-      </div>
-    </div>
+        <template v-else>
+          <!-- Vertical Mode -->
+          <div v-if="readingMode === 'vertical'" class="space-y-4">
+            <img 
+              v-for="(image, index) in chapterImages"
+              :key="index"
+              :src="image"
+              :alt="`Page ${index + 1}`"
+              :style="imageWidth !== 'full' && imageWidth !== 'auto' ? `width: ${imageWidth}px` : ''"
+              class="mx-auto rounded shadow-lg"
+              @load="handleImageLoad"
+              loading="lazy"
+            />
+          </div>
 
-    <!-- Bottom Navigation -->
-    <div 
-      class="fixed bottom-0 left-0 right-0 bg-gray-800/90 backdrop-blur-sm shadow-lg transition-transform duration-300"
-      :class="{ 'translate-y-full': hideNav }"
-      @mouseenter="hideNav = false"
-    >
-      <div class="container mx-auto px-4 h-16 flex items-center justify-between">
-        <button 
-          :disabled="!hasPrevChapter"
-          @click="navigateChapter(-1)"
-          class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <i class="fas fa-chevron-left mr-2"></i>
-          Chương trước
-        </button>
-
-        <div class="text-center">
-          <p class="text-sm text-gray-400">Đang đọc</p>
-          <p class="font-medium">Chương {{ chapterNumber }}</p>
-        </div>
-
-        <button 
-          :disabled="!hasNextChapter"
-          @click="navigateChapter(1)"
-          class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Chương sau
-          <i class="fas fa-chevron-right ml-2"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div 
-      v-if="showSettings"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      @click.self="showSettings = false"
-    >
-      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h3 class="text-xl font-bold text-white mb-4">Cài đặt đọc truyện</h3>
-        
-        <div class="space-y-4">
-          <!-- Reading Mode -->
-          <div>
-            <label class="text-white font-medium mb-2 block">Chế độ đọc</label>
-            <div class="flex items-center space-x-4">
-              <button 
-                @click="isVerticalMode = true"
-                :class="[
-                  'px-4 py-2 rounded transition-colors',
-                  isVerticalMode ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'
-                ]"
-              >
-                <i class="fas fa-arrows-alt-v mr-2"></i>
-                Dọc
-              </button>
-              <button 
-                @click="isVerticalMode = false"
-                :class="[
-                  'px-4 py-2 rounded transition-colors',
-                  !isVerticalMode ? 'bg-primary text-white' : 'bg-gray-700 text-gray-300'
-                ]"
-              >
-                <i class="fas fa-arrows-alt-h mr-2"></i>
-                Ngang
-              </button>
+          <!-- Horizontal Mode -->
+          <div v-else-if="readingMode === 'horizontal'" class="flex overflow-x-auto snap-x snap-mandatory">
+            <div 
+              v-for="(image, index) in chapterImages"
+              :key="index"
+              class="flex-shrink-0 snap-center"
+            >
+              <img 
+                :src="image"
+                :alt="`Page ${index + 1}`"
+                :style="imageWidth !== 'full' && imageWidth !== 'auto' ? `width: ${imageWidth}px` : ''"
+                class="mx-auto rounded shadow-lg"
+                @load="handleImageLoad"
+                loading="lazy"
+              />
             </div>
           </div>
 
-          <!-- Image Quality -->
-          <div>
-            <label class="text-white font-medium mb-2 block">Chất lượng ảnh</label>
-            <select 
-              v-model="imageQuality"
-              class="w-full bg-gray-700 text-white px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-primary"
-            >
-              <option value="high">Cao</option>
-              <option value="medium">Trung bình</option>
-              <option value="low">Thấp</option>
-            </select>
+          <!-- Single Page Mode -->
+          <div v-else class="flex justify-center">
+            <div class="relative">
+              <img 
+                :src="chapterImages[currentPage]"
+                :alt="`Page ${currentPage + 1}`"
+                :style="imageWidth !== 'full' && imageWidth !== 'auto' ? `width: ${imageWidth}px` : ''"
+                class="mx-auto rounded shadow-lg"
+                @load="handleImageLoad"
+              />
+              <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-900/80 px-4 py-2 rounded-full">
+                <span class="text-white">{{ currentPage + 1 }} / {{ chapterImages.length }}</span>
+              </div>
+              <button 
+                v-if="currentPage > 0"
+                @click="prevPage"
+                class="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-900/80 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+              >
+                <i class="fas fa-chevron-left"></i>
+              </button>
+              <button 
+                v-if="currentPage < chapterImages.length - 1"
+                @click="nextPage"
+                class="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-900/80 text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-red-500 transition-colors"
+              >
+                <i class="fas fa-chevron-right"></i>
+              </button>
+            </div>
           </div>
-        </div>
+        </template>
+      </div>
 
-        <div class="mt-6 flex justify-end">
+      <!-- Bottom Navigation -->
+      <div class="mt-6 bg-gray-800 rounded-lg p-4">
+        <div class="flex items-center justify-between">
           <button 
-            @click="showSettings = false"
-            class="px-4 py-2 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
+            @click="prevChapter"
+            :disabled="!hasPrevChapter"
+            :class="[
+              'px-4 py-2 rounded transition-colors',
+              hasPrevChapter 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+            ]"
           >
-            Đóng
+            <i class="fas fa-chevron-left mr-2"></i>
+            Chapter trước
+          </button>
+          <div class="text-center">
+            <h2 class="text-white text-lg font-medium mb-1">Chapter {{ currentChapter }}</h2>
+            <p class="text-gray-400">{{ mangaTitle }}</p>
+          </div>
+          <button 
+            @click="nextChapter"
+            :disabled="!hasNextChapter"
+            :class="[
+              'px-4 py-2 rounded transition-colors',
+              hasNextChapter 
+                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                : 'bg-gray-700 text-gray-400 cursor-not-allowed'
+            ]"
+          >
+            Chapter sau
+            <i class="fas fa-chevron-right ml-2"></i>
           </button>
         </div>
       </div>
-    </div>
-
-    <!-- Fullscreen Image -->
-    <div 
-      v-if="fullscreenImage !== null"
-      class="fixed inset-0 bg-black z-50 flex items-center justify-center"
-      @click="fullscreenImage = null"
-    >
-      <img 
-        :src="currentChapter?.pages[fullscreenImage]"
-        :alt="`Trang ${fullscreenImage + 1}`"
-        class="max-h-screen max-w-full"
-      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api from '@/services/api'
-import type { Manga, Chapter } from '@/services/api'
+
+interface Chapter {
+  id: string
+  mangaId: string
+  number: number
+  title: string
+  pages: string[]
+  views: number
+  createdAt: number
+  updatedAt: number
+}
 
 const route = useRoute()
 const router = useRouter()
 
-const mangaId = route.params.mangaId as string
-const chapterNumber = ref(parseInt(route.params.number as string))
-
-const manga = ref<Manga | null>(null)
-const chapters = ref<Chapter[]>([])
-const currentChapter = ref<Chapter | null>(null)
+// States
 const loading = ref(true)
-const error = ref('')
+const error = ref<string | null>(null)
+const mangaId = ref(route.params.id as string)
+const mangaTitle = ref('Demon Slayer')
+const currentChapter = ref(Number(route.params.chapter))
+const readingMode = ref('vertical')
+const imageWidth = ref('auto')
+const isFullscreen = ref(false)
+const currentPage = ref(0)
+const loadedImages = ref(0)
 
-// UI State
-const hideNav = ref(false)
-const showSettings = ref(false)
-const isVerticalMode = ref(true)
-const imageQuality = ref<'high' | 'medium' | 'low'>('high')
-const fullscreenImage = ref<number | null>(null)
-let mouseTimer: number | null = null
+// Chapter data
+const chapters = ref<Chapter[]>([])
+const currentChapterData = ref<Chapter | null>(null)
+const chapterImages = computed(() => currentChapterData.value?.pages || [])
 
+// Computed
 const hasPrevChapter = computed(() => {
-  const currentIndex = chapters.value.findIndex(c => c.number === chapterNumber.value)
+  const currentIndex = chapters.value.findIndex(c => c.number === currentChapter.value)
   return currentIndex > 0
 })
 
 const hasNextChapter = computed(() => {
-  const currentIndex = chapters.value.findIndex(c => c.number === chapterNumber.value)
+  const currentIndex = chapters.value.findIndex(c => c.number === currentChapter.value)
   return currentIndex < chapters.value.length - 1
 })
 
-const navigateChapter = (delta: number) => {
-  const currentIndex = chapters.value.findIndex(c => c.number === chapterNumber.value)
-  const nextChapter = chapters.value[currentIndex + delta]
-  if (nextChapter) {
-    router.push(`/manga/${mangaId}/chapter/${nextChapter.number}`)
+const chapterTitle = computed(() => {
+  return currentChapterData.value?.title || `Chapter ${currentChapter.value}`
+})
+
+// Methods
+const loadChapters = async () => {
+  try {
+    // Giả lập API call, thay thế bằng API thực tế
+    const response = await fetch('/api/chapters')
+    const data = await response.json()
+    chapters.value = data.sort((a: Chapter, b: Chapter) => b.number - a.number)
+  } catch (err) {
+    console.error('Error loading chapters:', err)
+    error.value = 'Không thể tải danh sách chapter'
   }
 }
 
-const onChapterChange = () => {
-  router.push(`/manga/${mangaId}/chapter/${chapterNumber.value}`)
-}
-
-const toggleReadingMode = () => {
-  isVerticalMode.value = !isVerticalMode.value
-}
-
-const toggleSettings = () => {
-  showSettings.value = !showSettings.value
-}
-
-const openFullscreen = (index: number) => {
-  fullscreenImage.value = index
-}
-
-const onMouseMove = () => {
-  hideNav.value = false
-  if (mouseTimer) clearTimeout(mouseTimer)
-  mouseTimer = window.setTimeout(() => {
-    hideNav.value = true
-  }, 3000)
-}
-
-const loadChapter = async () => {
+const loadChapterData = async () => {
   loading.value = true
-  error.value = ''
+  loadedImages.value = 0
+  error.value = null
   
   try {
-    currentChapter.value = await api.getChapter(mangaId, chapterNumber.value)
+    // Tìm chapter hiện tại từ danh sách đã load
+    currentChapterData.value = chapters.value.find(c => c.number === currentChapter.value) || null
+    
+    if (!currentChapterData.value) {
+      throw new Error('Chapter không tồn tại')
+    }
+
+    // Cập nhật tiêu đề manga và chapter
+    mangaTitle.value = 'Demon Slayer'
+    
+    // Reset current page khi đổi chapter trong chế độ single
+    if (readingMode.value === 'single') {
+      currentPage.value = 0
+    }
   } catch (err) {
-    error.value = 'Không thể tải nội dung chương'
+    console.error('Error loading chapter:', err)
+    error.value = 'Không thể tải nội dung chapter'
   } finally {
     loading.value = false
   }
 }
 
-watch(() => route.params.number, (newNumber) => {
-  chapterNumber.value = parseInt(newNumber as string)
-  loadChapter()
+const changeChapter = () => {
+  router.push(`/manga/${mangaId.value}/chapter/${currentChapter.value}`)
+}
+
+const prevChapter = () => {
+  if (hasPrevChapter.value) {
+    const currentIndex = chapters.value.findIndex(c => c.number === currentChapter.value)
+    currentChapter.value = chapters.value[currentIndex - 1].number
+    changeChapter()
+  }
+}
+
+const nextChapter = () => {
+  if (hasNextChapter.value) {
+    const currentIndex = chapters.value.findIndex(c => c.number === currentChapter.value)
+    currentChapter.value = chapters.value[currentIndex + 1].number
+    changeChapter()
+  }
+}
+
+const toggleFullscreen = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen()
+    isFullscreen.value = true
+  } else {
+    document.exitFullscreen()
+    isFullscreen.value = false
+  }
+}
+
+const prevPage = () => {
+  if (currentPage.value > 0) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < chapterImages.value.length - 1) {
+    currentPage.value++
+  }
+}
+
+const handleImageLoad = () => {
+  loadedImages.value++
+  if (loadedImages.value === chapterImages.value.length) {
+    loading.value = false
+  }
+}
+
+// Keyboard navigation for single page mode
+const handleKeyPress = (event: KeyboardEvent) => {
+  if (readingMode.value === 'single') {
+    if (event.key === 'ArrowLeft') {
+      prevPage()
+    } else if (event.key === 'ArrowRight') {
+      nextPage()
+    }
+  }
+}
+
+// Watch route changes
+watch(
+  () => route.params.chapter,
+  async (newChapter) => {
+    if (newChapter) {
+      currentChapter.value = Number(newChapter)
+      await loadChapterData()
+    }
+  }
+)
+
+// Lifecycle hooks
+onMounted(async () => {
+  await loadChapters()
+  await loadChapterData()
+  document.addEventListener('keydown', handleKeyPress)
 })
 
-onMounted(async () => {
-  try {
-    // Load manga info
-    manga.value = await api.getMangaById(mangaId)
-    
-    // Load chapter list
-    chapters.value = await api.getChaptersByMangaId(mangaId)
-    
-    // Load current chapter
-    await loadChapter()
-
-    // Start mouse timer
-    onMouseMove()
-  } catch (err) {
-    error.value = 'Không thể tải thông tin truyện'
-  }
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleKeyPress)
 })
 </script>
 
 <style scoped>
-.text-primary {
-  color: #FF6B6B;
+.chapter-content {
+  min-height: 400px;
 }
 
-.bg-primary {
-  background-color: #FF6B6B;
+.mode-horizontal {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-.border-primary {
-  border-color: #FF6B6B;
+.mode-horizontal::-webkit-scrollbar {
+  height: 8px;
 }
 
-.ring-primary {
-  --tw-ring-color: #FF6B6B;
+.mode-horizontal::-webkit-scrollbar-track {
+  background: #1a202c;
+  border-radius: 4px;
 }
 
-.hover\:text-primary:hover {
-  color: #FF6B6B;
+.mode-horizontal::-webkit-scrollbar-thumb {
+  background: #4a5568;
+  border-radius: 4px;
+}
+
+.mode-horizontal::-webkit-scrollbar-thumb:hover {
+  background: #718096;
+}
+
+/* Fade animation */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style> 

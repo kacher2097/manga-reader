@@ -9,7 +9,7 @@
 
       <!-- Search Bar - Hidden on Mobile -->
       <div class="hidden md:block flex-1 max-w-xl mx-8">
-        <div class="relative">
+        <div class="relative search-container">
           <input 
             type="text"
             v-model="searchQuery"
@@ -51,7 +51,7 @@
 
       <!-- Desktop Auth Buttons -->
       <div class="hidden md:flex items-center space-x-4">
-        <template v-if="props.isAuthenticated">
+        <template v-if="isAuthenticated()">
           <!-- Notifications -->
           <div class="relative notifications">
             <button 
@@ -283,7 +283,7 @@
               </div>
             </div>
           </li>
-          <li v-if="props.isAuthenticated">
+          <li v-if="isAuthenticated()">
             <router-link 
               to="/favorites" 
               class="block px-4 py-3 text-white hover:text-red-500 transition-colors"
@@ -293,7 +293,7 @@
               Yêu thích
             </router-link>
           </li>
-          <li v-if="props.isAuthenticated">
+          <li v-if="isAuthenticated()">
             <router-link 
               to="/following" 
               class="block px-4 py-3 text-white hover:text-red-500 transition-colors"
@@ -303,7 +303,7 @@
               Theo dõi
             </router-link>
           </li>
-          <li v-if="props.isAuthenticated">
+          <li v-if="isAuthenticated()">
             <router-link 
               to="/history" 
               class="block px-4 py-3 text-white hover:text-red-500 transition-colors"
@@ -311,16 +311,6 @@
             >
               <i class="fas fa-history mr-2"></i>
               Lịch sử
-            </router-link>
-          </li>
-          <li>
-            <router-link 
-              to="/search" 
-              class="block px-4 py-3 text-white hover:text-red-500 transition-colors md:hidden"
-              active-class="text-red-500"
-            >
-              <i class="fas fa-search mr-2"></i>
-              Tìm kiếm
             </router-link>
           </li>
         </ul>
@@ -396,7 +386,7 @@
                 Thể loại
               </router-link>
             </li>
-            <template v-if="props.isAuthenticated">
+            <template v-if="isAuthenticated()">
               <li>
                 <router-link 
                   to="/favorites" 
@@ -470,62 +460,49 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuth } from '@/composables/useAuth'
-import type { Manga, Category, Notification } from '@/types/manga'
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuth } from '@/composables/useAuth';
+import type { Manga, Category, Notification } from '@/types/manga';
 
-// Props từ component cha
-const props = defineProps({
-  isAuthenticated: {
-    type: Boolean,
-    default: false
-  },
-  userName: {
-    type: String,
-    default: 'Người dùng'
-  },
-  userAvatar: {
-    type: String,
-    default: 'https://i.pravatar.cc/300'
-  }
-})
+// Sử dụng useAuth để quản lý trạng thái xác thực
+const auth = useAuth();
+const isAuthenticated = () => auth.isAuthenticated();
+const user = computed(() => auth.user);
+const isAdmin = computed(() => auth.isAdmin());
 
-const router = useRouter()
-const { logout: authLogout } = useAuth()
+const router = useRouter();
 
 // States for navigation
-const showUserMenu = ref(false)
-const showNotifications = ref(false)
-const showCategories = ref(false)
-const showSearchResults = ref(false)
-const showMobileMenu = ref(false)
+const showUserMenu = ref(false);
+const showNotifications = ref(false);
+const showCategories = ref(false);
+const showSearchResults = ref(false);
+const showMobileMenu = ref(false);
 
 // Search states
-const searchQuery = ref('')
-const categorySearch = ref('')
-const searchResults = ref<Manga[]>([])
+const searchQuery = ref('');
+const categorySearch = ref('');
+const searchResults = ref<Manga[]>([]);
 
-// Computed properties from user state
-const userAvatar = computed(() => props.userAvatar || '/default-avatar.png')
-const userName = computed(() => props.userName || 'Người dùng')
-const isAdmin = computed(() => false)
+// Computed properties từ AuthService
+const userAvatar = computed(() => auth.user?.avatar || 'https://i.pravatar.cc/300');
+const userName = computed(() => auth.user?.username || 'Người dùng');
 
-const unreadNotifications = ref(0)
-const notifications = ref<Notification[]>([])
+const unreadNotifications = ref(0);
+const notifications = ref<Notification[]>([]);
 
 // Categories data
-const categories = ref<Category[]>([])
+const categories = ref<Category[]>([]);
 
 // Filtered categories based on search
 const filteredCategories = computed(() => {
-  if (!categorySearch.value) return categories.value
-  
-  const search = categorySearch.value.toLowerCase()
+  if (!categorySearch.value) return categories.value;
+  const search = categorySearch.value.toLowerCase();
   return categories.value.filter(category => 
     category.name.toLowerCase().includes(search)
-  )
-})
+  );
+});
 
 // Get color for category dot
 const getCategoryColor = (id: string | number): string => {
@@ -538,124 +515,120 @@ const getCategoryColor = (id: string | number): string => {
     'horror': 'bg-gray-500',
     'romance': 'bg-pink-500',
     'sci-fi': 'bg-indigo-500'
-  }
-  
-  const categoryId = String(id)
-  return colors[categoryId] || 'bg-gray-400'
-}
+  };
+  const categoryId = String(id);
+  return colors[categoryId] || 'bg-gray-400';
+};
 
 // Toggle functions
 const toggleUserMenu = (): void => {
-  showUserMenu.value = !showUserMenu.value
-  showNotifications.value = false
-  showCategories.value = false
-}
+  showUserMenu.value = !showUserMenu.value;
+  showNotifications.value = false;
+  showCategories.value = false;
+};
 
 const toggleNotifications = (): void => {
-  showNotifications.value = !showNotifications.value
-  showUserMenu.value = false
-  showCategories.value = false
-}
+  showNotifications.value = !showNotifications.value;
+  showUserMenu.value = false;
+  showCategories.value = false;
+};
 
 const toggleCategories = (): void => {
-  showCategories.value = !showCategories.value
-  showUserMenu.value = false
-  showNotifications.value = false
-}
+  showCategories.value = !showCategories.value;
+  showUserMenu.value = false;
+  showNotifications.value = false;
+};
 
 const toggleMobileMenu = () => {
-  showMobileMenu.value = !showMobileMenu.value
+  showMobileMenu.value = !showMobileMenu.value;
   if (showMobileMenu.value) {
-    document.body.style.overflow = 'hidden'
+    document.body.style.overflow = 'hidden';
   } else {
-    document.body.style.overflow = ''
+    document.body.style.overflow = '';
   }
-}
+};
 
 const closeMobileMenu = () => {
-  showMobileMenu.value = false
-  document.body.style.overflow = ''
-}
+  showMobileMenu.value = false;
+  document.body.style.overflow = '';
+};
 
 // Search functions
 const handleSearch = async (): Promise<void> => {
   if (searchQuery.value.length > 2) {
     try {
       // Gọi API search manga ở đây
-      // const response = await MangaService.search(searchQuery.value)
-      // searchResults.value = response.data
-      showSearchResults.value = true
+      // const response = await MangaService.search(searchQuery.value);
+      // searchResults.value = response.data;
+      showSearchResults.value = true;
     } catch (error) {
-      console.error('Search error:', error)
-      searchResults.value = []
+      console.error('Search error:', error);
+      searchResults.value = [];
     }
   } else {
-    showSearchResults.value = false
+    showSearchResults.value = false;
   }
-}
+};
 
 const clearSearch = (): void => {
-  searchQuery.value = ''
-  showSearchResults.value = false
-  searchResults.value = []
-}
+  searchQuery.value = '';
+  showSearchResults.value = false;
+  searchResults.value = [];
+};
 
 // Logout function
 const logout = async (): Promise<void> => {
-  await authLogout()
-  showUserMenu.value = false
-  router.push('/login')
-}
+  await auth.logout();
+  showUserMenu.value = false;
+  router.push('/login');
+};
 
 const handleMobileLogout = async () => {
-  await logout()
-  closeMobileMenu()
-}
+  await logout();
+  closeMobileMenu();
+};
 
 // Load initial data
 const loadInitialData = async (): Promise<void> => {
   try {
     // Gọi API lấy danh sách thể loại ở đây
-    // const response = await CategoryService.getAll()
-    // categories.value = response.data
+    // const response = await CategoryService.getAll();
+    // categories.value = response.data;
   } catch (error) {
-    console.error('Failed to load categories:', error)
+    console.error('Failed to load categories:', error);
   }
-}
+};
 
 // Click outside to close dropdowns
 const closeDropdowns = (event: MouseEvent): void => {
-  const target = event.target as HTMLElement
+  const target = event.target as HTMLElement;
   
   if (showUserMenu.value && !target.closest('.user-menu')) {
-    showUserMenu.value = false
+    showUserMenu.value = false;
   }
   
-  // Check if click is outside notifications
   if (showNotifications.value && !target.closest('.notifications')) {
-    showNotifications.value = false
+    showNotifications.value = false;
   }
   
-  // Check if click is outside categories
   if (showCategories.value && !target.closest('.categories')) {
-    showCategories.value = false
+    showCategories.value = false;
   }
   
-  // Check if click is outside search results
   if (showSearchResults.value && !target.closest('.search-container')) {
-    showSearchResults.value = false
+    showSearchResults.value = false;
   }
-}
+};
 
 onMounted(() => {
-  document.addEventListener('click', closeDropdowns)
-  loadInitialData()
-})
+  document.addEventListener('click', closeDropdowns);
+  loadInitialData();
+});
 
 onUnmounted(() => {
-  document.removeEventListener('click', closeDropdowns)
-  document.body.style.overflow = ''
-})
+  document.removeEventListener('click', closeDropdowns);
+  document.body.style.overflow = '';
+});
 </script>
 
 <style scoped>
@@ -672,4 +645,4 @@ onUnmounted(() => {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-</style> 
+</style>

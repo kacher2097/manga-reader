@@ -143,7 +143,7 @@ import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
-const { login } = useAuth()
+const { login, isAdmin } = useAuth()
 
 // Form state
 const username = ref('')
@@ -183,20 +183,34 @@ const validateForm = () => {
 
 // Form submission
 const handleSubmit = async () => {
-  if (!validateForm()) return
+  if (!validateForm()) return;
 
-  loading.value = true
+  loading.value = true;
   try {
-    // Đăng nhập và nhận dữ liệu người dùng
-    const userData = await login({username: username.value, password: password.value})
-    
-    // Thực hiện chuyển hướng - điều hướng được xử lý trong hàm login
-    console.log('Đăng nhập thành công:', userData)
+    await login({ username: username.value, password: password.value });
+    router.push(isAdmin() ? '/admin' : '/');
   } catch (error: any) {
-    console.error('Login error:', error)
-    errors.value.general = error.response?.data?.message || 'Đăng nhập thất bại, vui lòng thử lại'
+    console.error('Login error:', error);
+    errors.value.general = error.message || 'Đăng nhập thất bại, vui lòng thử lại';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
+// const handleSubmit = async () => {
+//   if (!validateForm()) return
+
+//   loading.value = true
+//   try {
+//     // Đăng nhập và nhận dữ liệu người dùng
+//     const userData = await login({username: username.value, password: password.value})
+    
+//     // Thực hiện chuyển hướng - điều hướng được xử lý trong hàm login
+//     console.log('Đăng nhập thành công:', userData)
+//   } catch (error: any) {
+//     console.error('Login error:', error)
+//     errors.value.general = error.response?.data?.message || 'Đăng nhập thất bại, vui lòng thử lại'
+//   } finally {
+//     loading.value = false
+//   }
+// }
 </script> 

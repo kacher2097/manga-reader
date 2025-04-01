@@ -1,29 +1,31 @@
 <template>
   <div class="min-h-screen flex flex-col bg-gray-900 text-white">
-    <template v-if="!isReady" class="flex-1 flex items-center justify-center">
-      <div class="text-center">
-        <div class="mb-4">
-          <div class="inline-block w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+    <template v-if="!isReady">
+      <div class="flex-1 flex items-center justify-center">
+        <div class="text-center">
+          <div class="mb-4">
+            <div class="inline-block w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p class="text-lg text-gray-300">Đang tải dữ liệu...</p>
         </div>
-        <p class="text-lg text-gray-300">Đang tải dữ liệu...</p>
       </div>
     </template>
     
     <template v-else>
       <template v-if="!isAdminRoute">
-        <TheHeader :is-authenticated="!!user" :user-avatar="userAvatar" :user-name="userName" />
+        <TheHeader />
         <main class="flex-grow">
           <router-view></router-view>
         </main>
         <TheFooter />
         <TheMobileNav 
           v-if="isMobileDevice"
-          :is-logged-in="!!user"
-          :user-avatar="userAvatar"
-          :user-name="userName"
-          :user-email="userEmail"
+          :is-logged-in="auth.isAuthenticated()"
+          :user-avatar="auth.user?.avatar || 'https://i.pravatar.cc/300'"
+          :user-name="auth.user?.fullName || auth.user?.username || 'Người dùng'"
+          :user-email="auth.user?.email || ''"
           :categories="categories"
-          @logout="handleLogout"
+          @logout="auth.logout"
         />
       </template>
       <template v-else>
@@ -43,14 +45,9 @@ import TheMobileNav from '@/components/TheMobileNav.vue'
 
 const router = useRouter()
 const route = useRoute()
-const { user, checkAuth, logout } = useAuth()
+const auth = useAuth()
 const isReady = ref(false)
 const isMobileDevice = ref(false)
-
-// Computed properties for user data
-const userAvatar = computed(() => user.value?.avatar || 'https://i.pravatar.cc/300')
-const userName = computed(() => user.value?.fullName || user.value?.username || 'Người dùng')
-const userEmail = computed(() => user.value?.email || '')
 
 // Categories data
 const categories = ref([
@@ -73,12 +70,6 @@ const isAdminRoute = computed(() => {
   return route.path.startsWith('/admin')
 })
 
-// Logout function
-const handleLogout = async () => {
-  await logout()
-  router.push('/login')
-}
-
 onMounted(async () => {
   // Kiểm tra thiết bị
   isMobileDevice.value = window.innerWidth < 768
@@ -86,39 +77,20 @@ onMounted(async () => {
     isMobileDevice.value = window.innerWidth < 768
   })
   
-  // Kiểm tra thông tin người dùng đến từ admin
-  const userFromAdmin = localStorage.getItem('userFromAdmin')
-  const tokenExpiryTemp = localStorage.getItem('token_expiry_temp')
-  
-  if (userFromAdmin) {
-    try {
-      // Gán thông tin người dùng từ admin
-      user.value = JSON.parse(userFromAdmin)
-      
-      // Khôi phục thời gian hết hạn token nếu có
-      if (tokenExpiryTemp) {
-        localStorage.setItem('token_expiry', tokenExpiryTemp)
-        localStorage.removeItem('token_expiry_temp')
-      }
-      
-      // Xóa dữ liệu tạm để tránh tác động đến các lần tải trang tiếp theo
-      localStorage.removeItem('userFromAdmin')
-    } catch (error) {
-      console.error('Lỗi khi xử lý thông tin người dùng từ admin:', error)
-      await checkAuth()  // Fallback to normal auth check
+  try {
+    // Kiểm tra xác thực người dùng
+    await auth.getCurrentUser()
+    
+    // Chuyển hướng nếu người dùng là admin
+    if (auth.isAdmin()  && (route.path === '/' || route.path === '/login')) {
+      router.push('/admin')
     }
-  } else {
-    // Kiểm tra xác thực bình thường nếu không có thông tin từ admin
-    await checkAuth()
+  } catch (error) {
+    console.error('Error during authentication check:', error)
+  } finally {
+    // Đã sẵn sàng hiển thị UI
+    isReady.value = true
   }
-  
-  // Chuyển hướng đến trang admin nếu người dùng là admin và không phải từ trang admin chuyển về
-  if (user.value && user.value.role === 'ADMIN' && !userFromAdmin && 
-      (route.path === '/' || route.path === '/login')) {
-    router.push('/admin')
-  }
-  
-  isReady.value = true
 })
 </script>
 

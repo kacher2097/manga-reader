@@ -85,7 +85,8 @@ import { AuthService } from '../services/auth.service'
 
 const route = useRoute()
 const router = useRouter()
-const user = computed(() => AuthService.getUser())
+const authInstance = AuthService.getInstance()
+const user = computed(() => authInstance.user)
 const userName = computed(() => user.value?.fullName || user.value?.username || 'Admin')
 const userAvatar = computed(() => user.value?.avatar || 'https://ui-avatars.com/api/?name=' + userName.value + '&background=FF6B6B&color=fff')
 
@@ -128,7 +129,7 @@ const isActive = (path: string) => {
 // Hàm xử lý đăng xuất
 const handleLogout = async () => {
   try {
-    await AuthService.logout()
+    authInstance.logout()
     router.push('/login')
   } catch (error) {
     console.error('Đăng xuất thất bại:', error)
@@ -139,25 +140,59 @@ const handleLogout = async () => {
 const handleHomeNavigation = (e: MouseEvent) => {
   e.preventDefault() // Ngăn chặn hành vi mặc định
   
-  // Lấy thông tin người dùng từ AuthService
-  const currentUser = AuthService.getUser()
-  
-  // Lưu thông tin người dùng vào localStorage để trang chủ nhận diện
-  if (currentUser) {
+  try {
+    // Lấy thông tin người dùng từ AuthService
+    const currentUser = authInstance.user
+    
+    // Đảm bảo có dữ liệu người dùng
+    if (!currentUser) {
+      console.error('Không tìm thấy thông tin người dùng')
+      window.location.href = '/'
+      return
+    }
+    
+    // Lưu thông tin người dùng vào localStorage để trang chủ nhận diện
     localStorage.setItem('userFromAdmin', JSON.stringify(currentUser))
     
-    // Đảm bảo thông tin token vẫn còn hiệu lực
-    const token = AuthService.getToken()
-    const tokenExpiry = localStorage.getItem('token_expiry')
-    
-    if (token && tokenExpiry) {
-      // Lưu token_expiry vào localStorage cho phiên chuyển trang
-      localStorage.setItem('token_expiry_temp', tokenExpiry)
+    // Lưu token hiện tại
+    const token = authInstance.token
+    if (token) {
+      // Lưu token vào localStorage
+      localStorage.setItem('token', token)
+      
+      // Tạo thời gian hết hạn nếu không có
+      const tokenExpiry = localStorage.getItem('token_expiry')
+      if (!tokenExpiry) {
+        const expiryDate = new Date()
+        expiryDate.setDate(expiryDate.getDate() + 7) // 7 ngày
+        localStorage.setItem('token_expiry', expiryDate.toISOString())
+      }
+      
+      // Lưu token_expiry vào biến tạm để trang chủ sử dụng
+      localStorage.setItem('token_expiry_temp', localStorage.getItem('token_expiry') || '')
+      
+      // Lưu thông tin auth vào auth_data
+      const authData = {
+        token: token,
+        refreshToken: '',  // Bạn cần bổ sung refreshToken nếu có
+        user: currentUser,
+        expiry: localStorage.getItem('token_expiry') || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      }
+      
+      localStorage.setItem('auth_data', JSON.stringify(authData))
     }
+    
+    console.log('Chuyển về trang chủ với dữ liệu admin:', currentUser)
+    
+    // Sử dụng setTimeout để đảm bảo localStorage được cập nhật trước khi chuyển trang
+    setTimeout(() => {
+      // Sử dụng window.location.href thay vì router.push để đảm bảo tải lại trang hoàn toàn
+      window.location.href = '/'
+    }, 100)
+  } catch (error) {
+    console.error('Lỗi khi chuyển về trang chủ:', error)
+    window.location.href = '/'
   }
-  
-  // Chuyển hướng về trang chủ
-  router.push('/')
 }
 </script>
 
