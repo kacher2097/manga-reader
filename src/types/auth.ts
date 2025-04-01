@@ -21,10 +21,10 @@ export interface User {
   email: string
   fullName?: string
   avatar?: string
-  role: 'admin' | 'user'
+  role: 'ADMIN' | 'USER'
 }
 
 export interface AuthResponse {
-  token: string
-  user: User
-} 
+  user: User;
+  token: string;
+}

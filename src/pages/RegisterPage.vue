@@ -19,9 +19,13 @@
 
       <!-- Registration Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
+        <div v-if="errors.general" class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded relative" role="alert">
+          <span class="block sm:inline">{{ errors.general }}</span>
+        </div>
+
         <div class="rounded-md shadow-sm space-y-4">
           <div>
-            <label for="username" class="sr-only">Tên người dùng</label>
+            <label for="username" class="sr-only">Tên đăng nhập</label>
             <input
               id="username"
               v-model="username"
@@ -34,7 +38,7 @@
                 'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
                 {'border-red-500': errors.username}
               ]"
-              placeholder="Tên người dùng"
+              placeholder="Tên đăng nhập"
             />
             <p v-if="errors.username" class="mt-2 text-sm text-red-500">{{ errors.username }}</p>
           </div>
@@ -56,6 +60,24 @@
               placeholder="Email"
             />
             <p v-if="errors.email" class="mt-2 text-sm text-red-500">{{ errors.email }}</p>
+          </div>
+          <div>
+            <label for="fullName" class="sr-only">Họ tên</label>
+            <input
+              id="fullName"
+              v-model="fullName"
+              name="fullName"
+              type="text"
+              required
+              :class="[
+                'appearance-none rounded-lg relative block w-full px-4 py-3 border',
+                'bg-gray-800 text-white placeholder-gray-400',
+                'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
+                {'border-red-500': errors.fullName}
+              ]"
+              placeholder="Họ tên"
+            />
+            <p v-if="errors.fullName" class="mt-2 text-sm text-red-500">{{ errors.fullName }}</p>
           </div>
           <div>
             <label for="password" class="sr-only">Mật khẩu</label>
@@ -174,21 +196,27 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { AuthService } from '@/services/auth.service'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { register } = useAuth()
 
 // Form state
 const username = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
+const fullName = ref('')
 const acceptTerms = ref(false)
 const loading = ref(false)
 const errors = ref({
   username: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  fullName: '',
+  general: ''
 })
 
 // Form validation
@@ -198,15 +226,17 @@ const validateForm = () => {
     username: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    fullName: '',
+    general: ''
   }
 
   // Username validation
   if (!username.value) {
-    errors.value.username = 'Tên người dùng không được để trống'
+    errors.value.username = 'Tên đăng nhập không được để trống'
     isValid = false
   } else if (username.value.length < 3) {
-    errors.value.username = 'Tên người dùng phải có ít nhất 3 ký tự'
+    errors.value.username = 'Tên đăng nhập phải có ít nhất 3 ký tự'
     isValid = false
   }
 
@@ -216,6 +246,12 @@ const validateForm = () => {
     isValid = false
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
     errors.value.email = 'Email không hợp lệ'
+    isValid = false
+  }
+
+  // Full name validation
+  if (!fullName.value) {
+    errors.value.fullName = 'Họ tên không được để trống'
     isValid = false
   }
 
@@ -250,14 +286,16 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Mock successful registration
+    await register({
+      username: username.value,
+      email: email.value,
+      password: password.value,
+      fullName: fullName.value
+    })
     router.push('/login')
-  } catch (error) {
+  } catch (error: any) {
     console.error('Registration error:', error)
-    // Handle error
+    errors.value.general = error.response?.data?.message || 'Đăng ký thất bại, vui lòng thử lại'
   } finally {
     loading.value = false
   }

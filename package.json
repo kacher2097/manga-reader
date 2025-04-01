@@ -23,6 +23,8 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.17",
+    "@types/bcrypt": "^5.0.2",
+    "@types/mongoose": "^5.11.97",
     "@types/node": "^22.13.14",
     "@vitejs/plugin-vue": "^5.2.1",
     "@vue/tsconfig": "^0.7.0",

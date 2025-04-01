@@ -7,8 +7,8 @@
         <span class="text-2xl font-bold text-red-500">Manga<span class="text-white">Hub</span></span>
       </router-link>
 
-      <!-- Search Bar -->
-      <div class="flex-1 max-w-xl mx-8">
+      <!-- Search Bar - Hidden on Mobile -->
+      <div class="hidden md:block flex-1 max-w-xl mx-8">
         <div class="relative">
           <input 
             type="text"
@@ -35,7 +35,7 @@
                 @click="clearSearch"
               >
                 <img 
-                  :src="result.cover"
+                  :src="result.coverImage"
                   :alt="result.title"
                   class="w-12 h-16 object-cover rounded"
                 />
@@ -49,9 +49,9 @@
         </div>
       </div>
 
-      <!-- Auth Buttons -->
-      <div class="flex items-center space-x-4">
-        <template v-if="isLoggedIn">
+      <!-- Desktop Auth Buttons -->
+      <div class="hidden md:flex items-center space-x-4">
+        <template v-if="props.isAuthenticated">
           <!-- Notifications -->
           <div class="relative notifications">
             <button 
@@ -84,6 +84,18 @@
                   <p class="text-white">{{ notification.message }}</p>
                   <span class="text-sm text-gray-400">{{ notification.time }}</span>
                 </div>
+                <div v-if="notifications.length === 0" class="p-3 text-center text-gray-400">
+                  Không có thông báo nào
+                </div>
+              </div>
+              <div class="p-2 border-t border-gray-700">
+                <router-link 
+                  to="/notifications"
+                  class="block w-full py-2 text-center text-white bg-gray-700 hover:bg-gray-600 rounded transition-colors"
+                  @click="showNotifications = false"
+                >
+                  Xem tất cả thông báo
+                </router-link>
               </div>
             </div>
           </div>
@@ -170,10 +182,18 @@
           </router-link>
         </template>
       </div>
+
+      <!-- Mobile Menu Button -->
+      <button 
+        @click="toggleMobileMenu"
+        class="md:hidden text-white hover:text-red-500 transition-colors"
+      >
+        <i :class="['fas', showMobileMenu ? 'fa-times' : 'fa-bars']"></i>
+      </button>
     </div>
 
-    <!-- Main Navigation -->
-    <nav class="bg-gray-800">
+    <!-- Main Navigation - Desktop -->
+    <nav class="hidden md:block bg-gray-800">
       <div class="container mx-auto px-4">
         <ul class="flex">
           <li>
@@ -258,12 +278,12 @@
                 >
                   <span :class="`w-2 h-2 rounded-full mr-2 ${getCategoryColor(category.id)}`"></span>
                   <span>{{ category.name }}</span>
-                  <span class="ml-auto text-xs text-gray-400">({{ category.count }})</span>
+                  <span class="ml-auto text-xs text-gray-400">({{ String(category.count) }})</span>
                 </router-link>
               </div>
             </div>
           </li>
-          <li v-if="isLoggedIn">
+          <li v-if="props.isAuthenticated">
             <router-link 
               to="/favorites" 
               class="block px-4 py-3 text-white hover:text-red-500 transition-colors"
@@ -273,7 +293,7 @@
               Yêu thích
             </router-link>
           </li>
-          <li v-if="isLoggedIn">
+          <li v-if="props.isAuthenticated">
             <router-link 
               to="/following" 
               class="block px-4 py-3 text-white hover:text-red-500 transition-colors"
@@ -283,7 +303,7 @@
               Theo dõi
             </router-link>
           </li>
-          <li v-if="isLoggedIn">
+          <li v-if="props.isAuthenticated">
             <router-link 
               to="/history" 
               class="block px-4 py-3 text-white hover:text-red-500 transition-colors"
@@ -306,66 +326,196 @@
         </ul>
       </div>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div 
+      v-if="showMobileMenu"
+      class="md:hidden fixed inset-0 z-50 bg-gray-900 bg-opacity-95"
+    >
+      <div class="flex flex-col h-full">
+        <!-- Mobile Search -->
+        <div class="p-4 border-b border-gray-800">
+          <div class="relative">
+            <input 
+              type="text"
+              v-model="searchQuery"
+              @input="handleSearch"
+              placeholder="Tìm kiếm manga..."
+              class="w-full px-4 py-2 rounded-full bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            />
+            <button class="absolute right-3 top-1/2 -translate-y-1/2">
+              <i class="fas fa-search text-gray-400"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <nav class="flex-1 overflow-y-auto">
+          <ul class="py-2">
+            <li>
+              <router-link 
+                to="/" 
+                class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                active-class="text-red-500 bg-gray-800"
+                @click="closeMobileMenu"
+              >
+                <i class="fas fa-home mr-3"></i>
+                Trang chủ
+              </router-link>
+            </li>
+            <li>
+              <router-link 
+                to="/latest" 
+                class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                active-class="text-red-500 bg-gray-800"
+                @click="closeMobileMenu"
+              >
+                <i class="fas fa-clock mr-3"></i>
+                Mới cập nhật
+              </router-link>
+            </li>
+            <li>
+              <router-link 
+                to="/popular" 
+                class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                active-class="text-red-500 bg-gray-800"
+                @click="closeMobileMenu"
+              >
+                <i class="fas fa-fire mr-3"></i>
+                Phổ biến
+              </router-link>
+            </li>
+            <li>
+              <router-link 
+                to="/categories" 
+                class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                active-class="text-red-500 bg-gray-800"
+                @click="closeMobileMenu"
+              >
+                <i class="fas fa-tags mr-3"></i>
+                Thể loại
+              </router-link>
+            </li>
+            <template v-if="props.isAuthenticated">
+              <li>
+                <router-link 
+                  to="/favorites" 
+                  class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                  active-class="text-red-500 bg-gray-800"
+                  @click="closeMobileMenu"
+                >
+                  <i class="fas fa-heart mr-3"></i>
+                  Yêu thích
+                </router-link>
+              </li>
+              <li>
+                <router-link 
+                  to="/history" 
+                  class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                  active-class="text-red-500 bg-gray-800"
+                  @click="closeMobileMenu"
+                >
+                  <i class="fas fa-history mr-3"></i>
+                  Lịch sử
+                </router-link>
+              </li>
+              <li>
+                <router-link 
+                  to="/profile" 
+                  class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                  active-class="text-red-500 bg-gray-800"
+                  @click="closeMobileMenu"
+                >
+                  <i class="fas fa-user mr-3"></i>
+                  Hồ sơ
+                </router-link>
+              </li>
+              <li>
+                <button 
+                  @click="handleMobileLogout"
+                  class="w-full text-left px-6 py-3 text-red-500 hover:bg-gray-800 transition-colors"
+                >
+                  <i class="fas fa-sign-out-alt mr-3"></i>
+                  Đăng xuất
+                </button>
+              </li>
+            </template>
+            <template v-else>
+              <li>
+                <router-link 
+                  to="/login" 
+                  class="block px-6 py-3 text-white hover:bg-gray-800 transition-colors"
+                  @click="closeMobileMenu"
+                >
+                  <i class="fas fa-sign-in-alt mr-3"></i>
+                  Đăng nhập
+                </router-link>
+              </li>
+              <li>
+                <router-link 
+                  to="/register" 
+                  class="block px-6 py-3 text-red-500 hover:bg-gray-800 transition-colors"
+                  @click="closeMobileMenu"
+                >
+                  <i class="fas fa-user-plus mr-3"></i>
+                  Đăng ký
+                </router-link>
+              </li>
+            </template>
+          </ul>
+        </nav>
+      </div>
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import type { Manga, Category, Notification } from '@/types/manga'
+
+// Props từ component cha
+const props = defineProps({
+  isAuthenticated: {
+    type: Boolean,
+    default: false
+  },
+  userName: {
+    type: String,
+    default: 'Người dùng'
+  },
+  userAvatar: {
+    type: String,
+    default: 'https://i.pravatar.cc/300'
+  }
+})
 
 const router = useRouter()
+const { logout: authLogout } = useAuth()
 
 // States for navigation
 const showUserMenu = ref(false)
 const showNotifications = ref(false)
 const showCategories = ref(false)
 const showSearchResults = ref(false)
+const showMobileMenu = ref(false)
 
 // Search states
 const searchQuery = ref('')
 const categorySearch = ref('')
-const searchResults = ref([
-  { id: '1', title: 'One Piece', cover: 'https://cdn.myanimelist.net/images/manga/2/253146.jpg', latestChapter: 1089 },
-  { id: '2', title: 'Jujutsu Kaisen', cover: 'https://cdn.myanimelist.net/images/manga/3/211807.jpg', latestChapter: 219 },
-  { id: '3', title: 'Chainsaw Man', cover: 'https://cdn.myanimelist.net/images/manga/3/216464.jpg', latestChapter: 130 },
-])
+const searchResults = ref<Manga[]>([])
 
-// Mock user data
-const isLoggedIn = ref(false)
-const userAvatar = ref('https://i.pravatar.cc/300')
-const userName = ref('John Doe')
-const unreadNotifications = ref(3)
-const notifications = ref([
-  { id: 1, message: 'One Piece Chapter 1089 đã được cập nhật', time: '5 phút trước' },
-  { id: 2, message: 'Jujutsu Kaisen Chapter 253 đã được cập nhật', time: '1 giờ trước' },
-  { id: 3, message: 'New manga added to your favorites', time: '1 day ago' },
-])
+// Computed properties from user state
+const userAvatar = computed(() => props.userAvatar || '/default-avatar.png')
+const userName = computed(() => props.userName || 'Người dùng')
+const isAdmin = computed(() => false)
+
+const unreadNotifications = ref(0)
+const notifications = ref<Notification[]>([])
 
 // Categories data
-const categories = ref([
-  { id: 'action', name: 'Action', count: 1240 },
-  { id: 'adventure', name: 'Adventure', count: 980 },
-  { id: 'comedy', name: 'Comedy', count: 1560 },
-  { id: 'drama', name: 'Drama', count: 1120 },
-  { id: 'ecchi', name: 'Ecchi', count: 670 },
-  { id: 'fantasy', name: 'Fantasy', count: 1340 },
-  { id: 'horror', name: 'Horror', count: 420 },
-  { id: 'josei', name: 'Josei', count: 180 },
-  { id: 'magic', name: 'Magic', count: 780 },
-  { id: 'mecha', name: 'Mecha', count: 310 },
-  { id: 'mystery', name: 'Mystery', count: 560 },
-  { id: 'psychological', name: 'Psychological', count: 430 },
-  { id: 'romance', name: 'Romance', count: 1670 },
-  { id: 'school-life', name: 'School Life', count: 890 },
-  { id: 'sci-fi', name: 'Sci-Fi', count: 620 },
-  { id: 'seinen', name: 'Seinen', count: 850 },
-  { id: 'shoujo', name: 'Shoujo', count: 750 },
-  { id: 'shounen', name: 'Shounen', count: 1930 },
-  { id: 'slice-of-life', name: 'Slice of Life', count: 920 },
-  { id: 'sports', name: 'Sports', count: 480 },
-  { id: 'supernatural', name: 'Supernatural', count: 1050 },
-  { id: 'tragedy', name: 'Tragedy', count: 370 },
-])
+const categories = ref<Category[]>([])
 
 // Filtered categories based on search
 const filteredCategories = computed(() => {
@@ -378,7 +528,7 @@ const filteredCategories = computed(() => {
 })
 
 // Get color for category dot
-const getCategoryColor = (id: string): string => {
+const getCategoryColor = (id: string | number): string => {
   const colors: Record<string, string> = {
     'action': 'bg-red-500',
     'adventure': 'bg-blue-500',
@@ -390,7 +540,8 @@ const getCategoryColor = (id: string): string => {
     'sci-fi': 'bg-indigo-500'
   }
   
-  return colors[id] || 'bg-gray-400'
+  const categoryId = String(id)
+  return colors[categoryId] || 'bg-gray-400'
 }
 
 // Toggle functions
@@ -412,11 +563,32 @@ const toggleCategories = (): void => {
   showNotifications.value = false
 }
 
+const toggleMobileMenu = () => {
+  showMobileMenu.value = !showMobileMenu.value
+  if (showMobileMenu.value) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = ''
+  }
+}
+
+const closeMobileMenu = () => {
+  showMobileMenu.value = false
+  document.body.style.overflow = ''
+}
+
 // Search functions
-const handleSearch = (): void => {
+const handleSearch = async (): Promise<void> => {
   if (searchQuery.value.length > 2) {
-    // In a real app, you would fetch search results here
-    showSearchResults.value = true
+    try {
+      // Gọi API search manga ở đây
+      // const response = await MangaService.search(searchQuery.value)
+      // searchResults.value = response.data
+      showSearchResults.value = true
+    } catch (error) {
+      console.error('Search error:', error)
+      searchResults.value = []
+    }
   } else {
     showSearchResults.value = false
   }
@@ -425,20 +597,36 @@ const handleSearch = (): void => {
 const clearSearch = (): void => {
   searchQuery.value = ''
   showSearchResults.value = false
+  searchResults.value = []
 }
 
 // Logout function
-const logout = (): void => {
-  isLoggedIn.value = false
+const logout = async (): Promise<void> => {
+  await authLogout()
   showUserMenu.value = false
-  // In a real app, you would handle logout logic here
+  router.push('/login')
+}
+
+const handleMobileLogout = async () => {
+  await logout()
+  closeMobileMenu()
+}
+
+// Load initial data
+const loadInitialData = async (): Promise<void> => {
+  try {
+    // Gọi API lấy danh sách thể loại ở đây
+    // const response = await CategoryService.getAll()
+    // categories.value = response.data
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+  }
 }
 
 // Click outside to close dropdowns
 const closeDropdowns = (event: MouseEvent): void => {
   const target = event.target as HTMLElement
   
-  // Check if click is outside user menu
   if (showUserMenu.value && !target.closest('.user-menu')) {
     showUserMenu.value = false
   }
@@ -461,10 +649,12 @@ const closeDropdowns = (event: MouseEvent): void => {
 
 onMounted(() => {
   document.addEventListener('click', closeDropdowns)
+  loadInitialData()
 })
 
 onUnmounted(() => {
   document.removeEventListener('click', closeDropdowns)
+  document.body.style.overflow = ''
 })
 </script>
 

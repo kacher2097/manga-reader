@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcrypt'
 
 export interface IUser {
+  id: string
   username: string
   email: string
   password: string
@@ -58,7 +59,7 @@ const userSchema = new mongoose.Schema<IUser>({
 })
 
 // Hash mật khẩu trước khi lưu
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function(next: mongoose.CallbackWithoutResultAndOptionalError) {
   if (!this.isModified('password')) return next()
   
   try {

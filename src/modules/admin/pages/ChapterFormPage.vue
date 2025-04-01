@@ -200,7 +200,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import type { Manga } from '@/services/api'
+import type { Manga } from '@/types/manga'
 
 interface Page {
   number: number
@@ -221,18 +221,22 @@ const isEditing = computed(() => chapterId !== 'new')
 const manga = ref<Manga>({
   id: 'one-piece',
   title: 'One Piece',
+  slug: 'one-piece',
   description: 'Theo chân cuộc phiêu lưu của Monkey D. Luffy...',
   coverImage: 'https://cdn.myanimelist.net/images/manga/2/253146.jpg',
-  status: 'ongoing',
-  categories: ['Action', 'Adventure'],
-  latestChapter: 1089,
+  status: 'ONGOING',
+  categories: [
+    { id: 'action', name: 'Action' },
+    { id: 'adventure', name: 'Adventure' }
+  ],
+  totalChapters: 1089,
   views: 1523789,
   rating: 4.8,
   author: 'Eiichiro Oda',
   artist: 'Eiichiro Oda',
   releaseYear: '1997',
-  createdAt: Date.now(),
-  updatedAt: Date.now()
+  createdAt: new Date(),
+  updatedAt: new Date()
 })
 
 const form = ref({

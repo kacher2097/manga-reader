@@ -43,7 +43,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import type { Manga } from '@/services/api';
+import type { Manga } from '@/types/manga';
 
 const props = defineProps<{
   manga: Manga

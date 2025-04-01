@@ -1,189 +1,191 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h1 class="text-2xl font-bold text-white">Quản lý manga</h1>
-      <router-link
-        to="/admin/manga/new"
-        class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg transition-colors"
-      >
-        <i class="fas fa-plus mr-2"></i>
-        Thêm manga mới
-      </router-link>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="flex flex-wrap gap-4">
-      <div class="flex-1 relative min-w-[200px]">
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Tìm kiếm manga..."
-          class="w-full bg-gray-700 text-white px-4 py-2 rounded-lg pl-10"
-        />
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    <div class="bg-gray-800 rounded-lg p-5 shadow-md border border-gray-700">
+      <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-primary">Quản lý Manga</h1>
+        <router-link 
+          to="/admin/manga/create" 
+          class="px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-md flex items-center transition-colors"
+        >
+          <i class="fas fa-plus mr-2"></i> Thêm manga mới
+        </router-link>
       </div>
-      <select
-        v-model="statusFilter"
-        class="bg-gray-700 text-white px-4 py-2 rounded-lg min-w-[150px]"
-      >
-        <option value="">Tất cả trạng thái</option>
-        <option value="ongoing">Đang tiến hành</option>
-        <option value="completed">Đã hoàn thành</option>
-        <option value="dropped">Đã drop</option>
-      </select>
-      <select
-        v-model="categoryFilter"
-        class="bg-gray-700 text-white px-4 py-2 rounded-lg min-w-[150px]"
-      >
-        <option value="">Tất cả thể loại</option>
-        <option v-for="category in categories" :key="category.id" :value="category.id">
-          {{ category.name }}
-        </option>
-      </select>
-      <select
-        v-model="sortBy"
-        class="bg-gray-700 text-white px-4 py-2 rounded-lg min-w-[150px]"
-      >
-        <option value="title">Tên A-Z</option>
-        <option value="-title">Tên Z-A</option>
-        <option value="views">Lượt xem (Thấp-Cao)</option>
-        <option value="-views">Lượt xem (Cao-Thấp)</option>
-        <option value="rating">Đánh giá (Thấp-Cao)</option>
-        <option value="-rating">Đánh giá (Cao-Thấp)</option>
-        <option value="updatedAt">Cập nhật (Cũ-Mới)</option>
-        <option value="-updatedAt">Cập nhật (Mới-Cũ)</option>
-      </select>
+      <p class="text-gray-400 mt-1">Quản lý danh sách manga có trong hệ thống</p>
     </div>
-
-    <!-- Manga Table -->
-    <div class="bg-gray-800 rounded-lg overflow-hidden">
-      <table class="w-full">
-        <thead>
-          <tr class="bg-gray-700">
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Manga
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Tác giả
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Trạng thái
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Chapter mới nhất
-            </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Thống kê
-            </th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-700">
-          <tr
-            v-for="manga in filteredMangas"
-            :key="manga.id"
-            class="hover:bg-gray-700/50 transition-colors"
+    
+    <!-- Search and filters -->
+    <div class="bg-gray-800 rounded-lg p-5 shadow-md border border-gray-700">
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Search -->
+        <div class="relative flex-grow md:max-w-xs">
+          <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+            <i class="fas fa-search text-gray-500"></i>
+          </span>
+          <input 
+            v-model="searchTerm"
+            type="text" 
+            placeholder="Tìm kiếm manga..." 
+            class="w-full py-2 pl-10 pr-4 bg-gray-700 text-gray-100 border border-gray-600 rounded-md focus:outline-none focus:border-primary transition-colors"
           >
-            <td class="px-6 py-4">
-              <div class="flex items-center space-x-3">
-                <img
-                  :src="manga.coverImage"
-                  :alt="manga.title"
-                  class="w-12 h-16 object-cover rounded"
-                />
-                <div>
-                  <div class="text-white font-medium">{{ manga.title }}</div>
-                  <div class="text-gray-400 text-sm">ID: {{ manga.id }}</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-gray-400">
-              {{ manga.author }}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span
-                :class="[
-                  'px-2 py-1 text-xs font-medium rounded-full',
-                  manga.status === 'ongoing' ? 'bg-green-500/20 text-green-400' :
-                  manga.status === 'completed' ? 'bg-blue-500/20 text-blue-400' :
-                  'bg-red-500/20 text-red-400'
-                ]"
-              >
-                {{ formatStatus(manga.status) }}
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-white">Chapter {{ manga.latestChapter }}</div>
-              <div class="text-gray-400 text-sm">{{ formatTimeAgo(manga.updatedAt) }}</div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center space-x-4">
-                <div class="text-center">
-                  <div class="text-white">{{ formatNumber(manga.views) }}</div>
-                  <div class="text-gray-400 text-xs">Lượt xem</div>
-                </div>
-                <div class="text-center">
-                  <div class="text-white">{{ manga.rating.toFixed(1) }}</div>
-                  <div class="text-gray-400 text-xs">Đánh giá</div>
-                </div>
-              </div>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <router-link
-                :to="`/admin/manga/${manga.id}/chapters`"
-                class="text-blue-400 hover:text-blue-300 transition-colors mr-3"
-                title="Quản lý chapter"
-              >
-                <i class="fas fa-list"></i>
-              </router-link>
-              <router-link
-                :to="`/admin/manga/${manga.id}/edit`"
-                class="text-yellow-400 hover:text-yellow-300 transition-colors mr-3"
-                title="Chỉnh sửa"
-              >
-                <i class="fas fa-edit"></i>
-              </router-link>
-              <button
-                @click="confirmDelete(manga)"
-                class="text-red-400 hover:text-red-300 transition-colors"
-                title="Xóa"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        </div>
+        
+        <!-- Category filter -->
+        <div class="sm:w-40 min-w-40">
+          <select 
+            v-model="selectedCategory"
+            class="w-full py-2 px-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-md focus:outline-none focus:border-primary transition-colors"
+          >
+            <option value="">Tất cả thể loại</option>
+            <option 
+              v-for="category in categories" 
+              :key="category.id" 
+              :value="category.id"
+            >
+              {{ category.name }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- Status filter -->
+        <div class="sm:w-40 min-w-40">
+          <select 
+            v-model="selectedStatus"
+            class="w-full py-2 px-3 bg-gray-700 text-gray-100 border border-gray-600 rounded-md focus:outline-none focus:border-primary transition-colors"
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="ONGOING">Đang tiến hành</option>
+            <option value="COMPLETED">Hoàn thành</option>
+            <option value="DROPPED">Đã hủy</option>
+          </select>
+        </div>
+      </div>
     </div>
-
-    <!-- Delete Confirmation Modal -->
-    <div
-      v-if="showDeleteModal"
-      class="fixed inset-0 bg-black/50 flex items-center justify-center"
-    >
-      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-        <h2 class="text-xl font-bold text-white mb-4">
-          Xác nhận xóa
-        </h2>
-        <p class="text-gray-400 mb-6">
-          Bạn có chắc chắn muốn xóa manga "{{ selectedManga?.title }}"?
-          Hành động này không thể hoàn tác và sẽ xóa tất cả chapter liên quan.
-        </p>
-        <div class="flex justify-end space-x-3">
-          <button
-            @click="showDeleteModal = false"
-            class="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+    
+    <!-- Manga table -->
+    <div class="bg-gray-800 rounded-lg shadow-md overflow-hidden border border-gray-700">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-700">
+          <thead class="bg-gray-700">
+            <tr>
+              <th 
+                v-for="header in tableHeaders" 
+                :key="header.key"
+                scope="col" 
+                class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider cursor-pointer hover:text-primary transition-colors"
+                @click="sortBy(header.key)"
+              >
+                {{ header.label }}
+                <span v-if="sortColumn === header.key">
+                  <i :class="[
+                    sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down',
+                    'ml-1'
+                  ]"></i>
+                </span>
+                <span v-else>
+                  <i class="fas fa-sort ml-1 text-gray-500"></i>
+                </span>
+              </th>
+              <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                Thao tác
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-gray-800 divide-y divide-gray-700">
+            <tr v-for="manga in sortedManga" :key="manga.id" class="hover:bg-gray-750 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <img class="h-10 w-10 rounded-md object-cover" :src="manga.coverImage" alt="" />
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-white">{{ manga.title }}</div>
+                    <div class="text-sm text-gray-400 truncate max-w-[200px]">{{ manga.alternativeTitles }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span v-for="(category, index) in manga.categories" :key="category.id" class="inline-block">
+                  <span class="text-sm text-blue-400 hover:text-blue-300 cursor-pointer transition-colors">{{ category.name }}</span>
+                  <span v-if="index < manga.categories.length - 1" class="text-gray-500 mx-1">•</span>
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm">
+                <span
+                  :class="[
+                    'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full',
+                    manga.status === 'ONGOING' ? 'bg-green-900 text-green-300' :
+                    manga.status === 'COMPLETED' ? 'bg-blue-900 text-blue-300' :
+                    'bg-red-900 text-red-300'
+                  ]"
+                >
+                  {{ formatStatus(manga.status) }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                {{ manga.totalChapters }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                {{ formatDate(manga.updatedAt) }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                <div class="flex justify-end space-x-2">
+                  <router-link :to="`/admin/manga/${manga.id}/chapters`" class="text-blue-400 hover:text-blue-300 px-2 py-1 rounded-md hover:bg-blue-400/10 transition-colors">
+                    <i class="fas fa-list-ul"></i>
+                    <span class="ml-1">Chapters</span>
+                  </router-link>
+                  <router-link :to="`/admin/manga/${manga.id}/edit`" class="text-yellow-400 hover:text-yellow-300 px-2 py-1 rounded-md hover:bg-yellow-400/10 transition-colors">
+                    <i class="fas fa-edit"></i>
+                    <span class="ml-1">Sửa</span>
+                  </router-link>
+                  <button @click="confirmDelete(manga)" class="text-red-400 hover:text-red-300 px-2 py-1 rounded-md hover:bg-red-400/10 transition-colors">
+                    <i class="fas fa-trash-alt"></i>
+                    <span class="ml-1">Xóa</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <!-- No results row -->
+            <tr v-if="sortedManga.length === 0">
+              <td colspan="6" class="px-6 py-10 text-center text-gray-400">
+                <div class="flex flex-col items-center">
+                  <i class="fas fa-search text-4xl mb-3 text-gray-600"></i>
+                  <p class="text-lg">Không tìm thấy manga nào</p>
+                  <p class="text-sm mt-1">Thử tìm kiếm với từ khóa khác hoặc thêm manga mới</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Pagination here if needed -->
+    </div>
+    
+    <!-- Delete confirmation modal -->
+    <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+      <div class="bg-gray-800 rounded-lg max-w-md w-full p-6 shadow-lg border border-gray-700">
+        <div class="text-center mb-6">
+          <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-900 mb-4">
+            <i class="fas fa-exclamation-triangle text-2xl text-red-400"></i>
+          </div>
+          <h3 class="text-xl font-medium text-white mb-1">Xác nhận xóa</h3>
+          <p class="text-gray-400">
+            Bạn có chắc chắn muốn xóa manga "<span class="text-white">{{ mangaToDelete?.title }}</span>"?
+            <br>Hành động này không thể hoàn tác.
+          </p>
+        </div>
+        <div class="flex justify-center space-x-4">
+          <button 
+            @click="showDeleteModal = false" 
+            class="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
           >
-            Hủy
+            Hủy bỏ
           </button>
-          <button
-            @click="deleteManga"
-            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors"
+          <button 
+            @click="deleteManga" 
+            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors flex items-center"
           >
-            Xóa
+            <i class="fas fa-trash-alt mr-2"></i> Xóa manga
           </button>
         </div>
       </div>
@@ -192,164 +194,129 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { Manga } from '@/services/api'
+import { ref, computed, onMounted } from 'vue'
+import { MangaService } from '@/services/manga.service'
+import { CategoryService } from '@/services/category.service'
+import { formatDate } from '@/utils/format'
 
-// Sample data
-const categories = ref([
-  { id: '1', name: 'Action' },
-  { id: '2', name: 'Adventure' },
-  { id: '3', name: 'Comedy' },
-  { id: '4', name: 'Drama' }
-])
-
-const mangas = ref<Manga[]>([
-  {
-    id: 'one-piece',
-    title: 'One Piece',
-    description: 'Theo chân cuộc phiêu lưu của Monkey D. Luffy...',
-    coverImage: 'https://cdn.myanimelist.net/images/manga/2/253146.jpg',
-    status: 'ongoing',
-    categories: ['Action', 'Adventure'],
-    latestChapter: 1089,
-    views: 1523789,
-    rating: 4.8,
-    author: 'Eiichiro Oda',
-    artist: 'Eiichiro Oda',
-    releaseYear: '1997',
-    createdAt: Date.now(),
-    updatedAt: Date.now() - 1000 * 60 * 60 * 2 // 2 hours ago
-  },
-  {
-    id: 'jujutsu-kaisen',
-    title: 'Jujutsu Kaisen',
-    description: 'Câu chuyện về Yuji Itadori...',
-    coverImage: 'https://cdn.myanimelist.net/images/manga/3/211807.jpg',
-    status: 'ongoing',
-    categories: ['Action', 'Supernatural'],
-    latestChapter: 235,
-    views: 852963,
-    rating: 4.6,
-    author: 'Gege Akutami',
-    artist: 'Gege Akutami',
-    releaseYear: '2018',
-    createdAt: Date.now(),
-    updatedAt: Date.now() - 1000 * 60 * 60 * 5 // 5 hours ago
-  },
-  {
-    id: 'chainsaw-man',
-    title: 'Chainsaw Man',
-    description: 'Denji là một thiếu niên nghèo...',
-    coverImage: 'https://cdn.myanimelist.net/images/manga/3/216464.jpg',
-    status: 'completed',
-    categories: ['Action', 'Horror'],
-    latestChapter: 154,
-    views: 741852,
-    rating: 4.7,
-    author: 'Tatsuki Fujimoto',
-    artist: 'Tatsuki Fujimoto',
-    releaseYear: '2018',
-    createdAt: Date.now(),
-    updatedAt: Date.now() - 1000 * 60 * 60 * 24 // 1 day ago
-  }
-])
-
-const searchQuery = ref('')
-const statusFilter = ref('')
-const categoryFilter = ref('')
-const sortBy = ref('title')
+// Data
+const mangas = ref<any[]>([])
+const categories = ref<any[]>([])
+const searchTerm = ref('')
+const selectedCategory = ref('')
+const selectedStatus = ref('')
+const sortColumn = ref('updatedAt')
+const sortDirection = ref('desc')
 const showDeleteModal = ref(false)
-const selectedManga = ref<Manga | null>(null)
+const mangaToDelete = ref<any>(null)
 
-const filteredMangas = computed(() => {
-  let result = [...mangas.value]
-  
-  // Search
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(manga => 
-      manga.title.toLowerCase().includes(query) ||
-      manga.author.toLowerCase().includes(query)
-    )
-  }
-  
-  // Status filter
-  if (statusFilter.value) {
-    result = result.filter(manga => manga.status === statusFilter.value)
-  }
-  
-  // Sort
-  const [field, order] = sortBy.value.startsWith('-') 
-    ? [sortBy.value.slice(1), 'desc']
-    : [sortBy.value, 'asc']
+// Table headers
+const tableHeaders = [
+  { key: 'title', label: 'Tên Manga' },
+  { key: 'categories', label: 'Thể loại' },
+  { key: 'status', label: 'Trạng thái' },
+  { key: 'totalChapters', label: 'Số chương' },
+  { key: 'updatedAt', label: 'Cập nhật' },
+]
+
+// Fetch data
+onMounted(async () => {
+  try {
+    const [mangaData, categoryData] = await Promise.all([
+      MangaService.getAll(),
+      CategoryService.getAll()
+    ])
     
-  result.sort((a, b) => {
-    const aValue = a[field as keyof Manga]
-    const bValue = b[field as keyof Manga]
-    
-    if (order === 'asc') {
-      return aValue > bValue ? 1 : -1
-    }
-    return aValue < bValue ? 1 : -1
-  })
-  
-  return result
+    mangas.value = mangaData
+    categories.value = categoryData
+  } catch (error) {
+    console.error('Error fetching data:', error)
+  }
 })
+
+// Computed properties
+const filteredManga = computed(() => {
+  return mangas.value.filter(manga => {
+    // Filter by search term
+    const matchesSearch = searchTerm.value === '' || manga.title.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
+      (manga.alternativeTitles && manga.alternativeTitles.toLowerCase().includes(searchTerm.value.toLowerCase()))
+    
+    // Filter by category
+    const matchesCategory = selectedCategory.value === '' || manga.categories.some((cat: any) => cat.id === selectedCategory.value)
+    
+    // Filter by status
+    const matchesStatus = selectedStatus.value === '' || manga.status === selectedStatus.value
+    
+    return matchesSearch && matchesCategory && matchesStatus
+  })
+})
+
+const sortedManga = computed(() => {
+  return [...filteredManga.value].sort((a, b) => {
+    // Safely access the property in question
+    let aValue = a[sortColumn.value]
+    let bValue = b[sortColumn.value]
+    
+    // Handle category sorting special case
+    if (sortColumn.value === 'categories') {
+      aValue = a.categories.length > 0 ? a.categories[0].name : ''
+      bValue = b.categories.length > 0 ? b.categories[0].name : ''
+    }
+    
+    // Handle undefined values
+    if (aValue === undefined && bValue === undefined) return 0
+    if (aValue === undefined) return 1
+    if (bValue === undefined) return -1
+    
+    // Compare based on value type
+    if (typeof aValue === 'string') {
+      const comparison = aValue.localeCompare(bValue)
+      return sortDirection.value === 'asc' ? comparison : -comparison
+    } else {
+      const comparison = aValue - bValue
+      return sortDirection.value === 'asc' ? comparison : -comparison
+    }
+  })
+})
+
+// Methods
+const sortBy = (column: string) => {
+  if (sortColumn.value === column) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortColumn.value = column
+    sortDirection.value = 'asc'
+  }
+}
 
 const formatStatus = (status: string) => {
   switch (status) {
-    case 'ongoing':
+    case 'ONGOING':
       return 'Đang tiến hành'
-    case 'completed':
-      return 'Đã hoàn thành'
-    case 'dropped':
-      return 'Đã drop'
+    case 'COMPLETED':
+      return 'Hoàn thành'
+    case 'DROPPED':
+      return 'Đã hủy'
     default:
       return status
   }
 }
 
-const formatTimeAgo = (timestamp: number) => {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000)
-  
-  if (seconds < 60) {
-    return 'vừa xong'
-  }
-  
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) {
-    return `${minutes} phút trước`
-  }
-  
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) {
-    return `${hours} giờ trước`
-  }
-  
-  const days = Math.floor(hours / 24)
-  return `${days} ngày trước`
-}
-
-const formatNumber = (num: number) => {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + 'M'
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + 'K'
-  }
-  return num.toString()
-}
-
-const confirmDelete = (manga: Manga) => {
-  selectedManga.value = manga
+const confirmDelete = (manga: any) => {
+  mangaToDelete.value = manga
   showDeleteModal.value = true
 }
 
-const deleteManga = () => {
-  if (selectedManga.value) {
-    mangas.value = mangas.value.filter(m => m.id !== selectedManga.value?.id)
+const deleteManga = async () => {
+  if (!mangaToDelete.value) return
+  
+  try {
+    await MangaService.delete(mangaToDelete.value.id)
+    mangas.value = mangas.value.filter(m => m.id !== mangaToDelete.value.id)
     showDeleteModal.value = false
-    selectedManga.value = null
+    mangaToDelete.value = null
+  } catch (error) {
+    console.error('Error deleting manga:', error)
   }
 }
 </script>
@@ -363,7 +330,15 @@ const deleteManga = () => {
   background-color: #FF6B6B;
 }
 
-.hover\:bg-primary-dark:hover {
-  background-color: #FF5252;
+.bg-primary\/90 {
+  background-color: rgba(255, 107, 107, 0.9);
+}
+
+.border-primary {
+  border-color: #FF6B6B;
+}
+
+.bg-gray-750 {
+  background-color: #2D3748;
 }
 </style> 

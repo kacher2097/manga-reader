@@ -19,25 +19,28 @@
 
       <!-- Login Form -->
       <form class="mt-8 space-y-6" @submit.prevent="handleSubmit">
+        <div v-if="errors.general" class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded relative" role="alert">
+          <span class="block sm:inline">{{ errors.general }}</span>
+        </div>
+
         <div class="rounded-md shadow-sm space-y-4">
           <div>
-            <label for="email" class="sr-only">Email</label>
+            <label for="username" class="sr-only">Tên đăng nhập</label>
             <input
-              id="email"
-              v-model="email"
-              name="email"
-              type="email"
-              autocomplete="email"
+              id="username"
+              v-model="username"
+              name="username"
+              type="text"
               required
               :class="[
                 'appearance-none rounded-lg relative block w-full px-4 py-3 border',
                 'bg-gray-800 text-white placeholder-gray-400',
                 'border-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent',
-                {'border-red-500': errors.email}
+                {'border-red-500': errors.username}
               ]"
-              placeholder="Email"
+              placeholder="Tên đăng nhập"
             />
-            <p v-if="errors.email" class="mt-2 text-sm text-red-500">{{ errors.email }}</p>
+            <p v-if="errors.username" class="mt-2 text-sm text-red-500">{{ errors.username }}</p>
           </div>
           <div>
             <label for="password" class="sr-only">Mật khẩu</label>
@@ -137,32 +140,33 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { login } = useAuth()
 
 // Form state
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const loading = ref(false)
 const errors = ref({
-  email: '',
-  password: ''
+  username: '',
+  password: '',
+  general: ''
 })
 
 // Form validation
 const validateForm = () => {
   let isValid = true
   errors.value = {
-    email: '',
-    password: ''
+    username: '',
+    password: '',
+    general: ''
   }
 
-  if (!email.value) {
-    errors.value.email = 'Email không được để trống'
-    isValid = false
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
-    errors.value.email = 'Email không hợp lệ'
+  if (!username.value) {
+    errors.value.username = 'Tên đăng nhập không được để trống'
     isValid = false
   }
 
@@ -183,14 +187,14 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // Đăng nhập và nhận dữ liệu người dùng
+    const userData = await login({username: username.value, password: password.value})
     
-    // Mock successful login
-    router.push('/')
-  } catch (error) {
+    // Thực hiện chuyển hướng - điều hướng được xử lý trong hàm login
+    console.log('Đăng nhập thành công:', userData)
+  } catch (error: any) {
     console.error('Login error:', error)
-    // Handle error
+    errors.value.general = error.response?.data?.message || 'Đăng nhập thất bại, vui lòng thử lại'
   } finally {
     loading.value = false
   }

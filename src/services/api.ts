@@ -1,23 +1,8 @@
 import axios from 'axios';
+import type { Manga } from '@/types/manga'
+import type { User } from '@/types/auth'
 
 const API_URL = 'http://localhost:8080/api';
-
-export interface Manga {
-    id: string;
-    title: string;
-    description: string;
-    coverImage: string;
-    status: 'ongoing' | 'completed' | 'dropped';
-    categories: string[];
-    latestChapter: number;
-    rating: number;
-    views: number;
-    author: string;
-    artist: string;
-    releaseYear: string;
-    createdAt: number;
-    updatedAt: number;
-}
 
 export interface Chapter {
     id: string;
@@ -112,6 +97,12 @@ const fallbackChapters: Chapter[] = [
   }
 ]
 
+// Helper function to transform API response to Manga type
+const transformToManga = (data: any): Manga => ({
+  ...data,
+  cover: data.coverImage, // Map coverImage to cover
+})
+
 const api = {
     async getAllMangas(): Promise<Manga[]> {
         try {
@@ -125,8 +116,8 @@ const api = {
 
     async getLatestMangas(): Promise<Manga[]> {
         try {
-            const response = await axios.get(`${API_URL}/manga/latest`);
-            return response.data;
+            const response = await axios.get('/manga/latest');
+            return response.data.map(transformToManga);
         } catch (error) {
             console.error('Error fetching latest mangas:', error);
             return sampleMangas.sort((a, b) => b.updatedAt - a.updatedAt);
@@ -135,8 +126,8 @@ const api = {
 
     async getPopularMangas(): Promise<Manga[]> {
         try {
-            const response = await axios.get(`${API_URL}/manga/popular`);
-            return response.data;
+            const response = await axios.get('/manga/popular');
+            return response.data.map(transformToManga);
         } catch (error) {
             console.error('Error fetching popular mangas:', error);
             return sampleMangas.sort((a, b) => b.views - a.views);
@@ -257,6 +248,21 @@ const api = {
             console.error('Error deleting chapter:', error);
             throw error;
         }
+    },
+
+    async getTrendingManga(): Promise<Manga[]> {
+        const response = await axios.get('/manga/trending')
+        return response.data.map(transformToManga)
+    },
+
+    async getTopRatedMangas(): Promise<Manga[]> {
+        const response = await axios.get('/manga/top-rated')
+        return response.data.map(transformToManga)
+    },
+
+    async getCurrentUser(): Promise<User> {
+        const response = await axios.get('/auth/me')
+        return response.data
     }
 };
 
